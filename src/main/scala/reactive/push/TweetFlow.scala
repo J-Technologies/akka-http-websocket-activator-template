@@ -7,7 +7,6 @@ import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.unmarshalling._
 import akka.stream.FlowMaterializer
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
-import akka.stream.stage.{Context, PushStage, SyncDirective, TerminationDirective}
 import reactive.receive.TimelineActor.Tweet
 import reactive.receive.User
 import spray.json._
@@ -25,21 +24,9 @@ trait TweetJsonProtocol extends DefaultJsonProtocol {
 
 object TweetFlow extends TweetJsonProtocol {
 
-  def ofAll(): Flow[Message, Message, ActorRef] = toWebsocketFlow(tweetSource map toMessage)
+  def ofAll() = toWebsocketFlow(tweetSource map toMessage)
 
-  private def toWebsocketFlow[Mat](source: Source[Message, Mat]) = Flow(Sink.ignore, source)(Keep.right) { implicit b =>
+  private def toWebsocketFlow[Mat](source: Source[Message, Mat]) = Flow(Sink.ignore, source)(Keep.left) { implicit b =>
     (sink, source) => (sink.inlet, source.outlet)
-  }.via(LoggingFlow())
-}
-
-object LoggingFlow {
-  def apply[T](): Flow[T, T, Unit] =
-    Flow[T].transform(() => new PushStage[T, T] {
-      def onPush(elem: T, ctx: Context[T]): SyncDirective = ctx.push(elem)
-
-      override def onUpstreamFailure(cause: Throwable, ctx: Context[T]): TerminationDirective = {
-        println(s"WS stream failed with ${cause.getMessage()}", cause)
-        super.onUpstreamFailure(cause, ctx)
-      }
-    })
+  }
 }
