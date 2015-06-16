@@ -109,3 +109,6 @@ local.properties
 
 # TeXlipse plugin
 .texlipse
+
+# Akka Persistence
+journal/

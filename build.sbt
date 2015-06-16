@@ -11,11 +11,12 @@ libraryDependencies ++= {
     "com.typesafe.akka" %% "akka-stream-experimental" % akkaStreamV,
     "com.typesafe.akka" %% "akka-http-experimental" % akkaStreamV,
     "com.typesafe.akka" %% "akka-http-spray-json-experimental" % akkaStreamV,
-    "com.typesafe.akka" %% "akka-http-testkit-experimental" % akkaStreamV,
-    "com.typesafe.akka" %% "akka-stream-testkit-experimental" % akkaStreamV,
     "com.typesafe.akka" %% "akka-http-xml-experimental" % akkaStreamV,
+    "com.typesafe.akka" %% "akka-persistence-experimental" % akkaV,
     
     //test deps
+    "com.typesafe.akka" %% "akka-http-testkit-experimental" % akkaStreamV,
+    "com.typesafe.akka" %% "akka-stream-testkit-experimental" % akkaStreamV,
     "org.scalatest" %% "scalatest" % "2.2.5" % "test",
     "junit" % "junit" % "4.10" % "test"
   )

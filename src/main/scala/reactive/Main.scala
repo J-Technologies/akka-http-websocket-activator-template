@@ -9,6 +9,12 @@ import scala.concurrent.duration._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives.get
 import akka.http.scaladsl.server.Directives.complete
+import reactive.receive.TimelineActor
+import reactive.receive.TimelineActorManager
+import reactive.receive.TimelineActor.Tweet
+import reactive.receive.User
+import akka.pattern.ask
+import akka.actor.PoisonPill
 
 object Main extends App {
   implicit val system = ActorSystem("webapi")
@@ -20,7 +26,11 @@ object Main extends App {
 
   def mainFlow: Route = {
     get {
-      complete("Akka bla bla bla")
+      complete {
+        val saved = system.actorOf(TimelineActorManager.props) ? TimelineActor.Tweet(User("test"), "cool")
+
+        saved.map(_ => "Akka bla bla bla")
+      }
     }
   }
 }
