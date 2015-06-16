@@ -10,7 +10,7 @@ src_managed/
 project/boot/
 .history
 .cache
-
+.sbtserver/
 
 ### Intellij ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm
