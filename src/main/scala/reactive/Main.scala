@@ -2,7 +2,6 @@ package reactive
 
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
-
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.ToResponseMarshallable.apply
@@ -27,6 +26,8 @@ import reactive.push.TweetFlow
 import reactive.receive.TimelineActor
 import reactive.receive.TimelineActorManager
 import reactive.receive.User
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Await
 
 object Main extends App {
   implicit val system = ActorSystem("webapi")
@@ -36,7 +37,7 @@ object Main extends App {
 
   val serverBinding = Http().bindAndHandle(interface = "0.0.0.0", port = 8080, handler = mainFlow)
 
-  def mainFlow: Route = {
+  def mainFlow(implicit system: ActorSystem, timeout: Timeout, executor: ExecutionContext): Route = {
     (get & path("post")) {
       complete {
         val saved = system.actorOf(TimelineActorManager.props) ? TimelineActor.Tweet(User("test"), "cool")

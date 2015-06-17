@@ -19,12 +19,12 @@ class TimelineActor(val user: User) extends PersistentActor {
   override def receiveCommand = {
     case tweet: Tweet =>
       persist(tweet) { event =>
-        println("saved!!!!")
         sender() ! Status.Success
         context.system.eventStream.publish(tweet)
       }
 
-    case msg => throw new UnsupportedOperationException(s"received unexpected message $msg from ${sender()}")
+    case msg =>
+      throw new UnsupportedOperationException(s"received unexpected message $msg from ${sender()}")
   }
 
   override def receiveRecover = {
