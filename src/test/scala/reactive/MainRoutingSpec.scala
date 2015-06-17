@@ -33,27 +33,34 @@ class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest {
     }
   }
 
-  "the handleWebsocketMessages directive" should "handle websocket requests" in {
+  it should "handle websocket requests for tweets" in {
     implicit val timeout = Timeout(1000 millis)
     implicit val materializer = ActorFlowMaterializer()
     Get("/") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
       status shouldEqual StatusCodes.SwitchingProtocols
     }
   }
+  
+  it should "handle websocket requests for hashtags" in {
+    implicit val timeout = Timeout(1000 millis)
+    implicit val materializer = ActorFlowMaterializer()
+    Get("/hashtag/test") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
+      status shouldEqual StatusCodes.SwitchingProtocols
+    }
+  }
 
   /** Only checks for upgrade header and then adds UpgradeToWebsocket mock header */
-  def emulateHttpCore(req: HttpRequest): HttpRequest =
+  private def emulateHttpCore(req: HttpRequest): HttpRequest =
     req.header[Upgrade] match {
       case Some(upgrade) if upgrade.hasWebsocket ⇒ req.copy(headers = req.headers :+ upgradeToWebsocketHeaderMock)
       case _                                     ⇒ req
     }
-  def upgradeToWebsocketHeaderMock: UpgradeToWebsocket =
+
+  private def upgradeToWebsocketHeaderMock: UpgradeToWebsocket =
     new CustomHeader() with UpgradeToWebsocket {
       override def requestedProtocols = Nil
-override def suppressRendering: Boolean = true
       override def name = ""
       override def value = "UpgradeToWebsocketMock"
-      
 
       override def handleMessages(handlerFlow: Flow[Message, Message, Any], subprotocol: Option[String])(implicit mat: FlowMaterializer): HttpResponse =
         HttpResponse(StatusCodes.SwitchingProtocols)
