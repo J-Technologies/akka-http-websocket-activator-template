@@ -24,7 +24,7 @@ import akka.http.scaladsl.model.headers.CustomHeader
 import akka.http.impl.engine.ws.InternalCustomHeader
 
 class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest {
-  "Main" should "respond with index on /" in {
+  "Main" should "respond to 'post' on /post" in {
     implicit val timeout = Timeout(1000 millis)
     implicit val materializer = ActorFlowMaterializer()
 

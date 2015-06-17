@@ -24,7 +24,7 @@ class TimelineActorSpec extends ActorSpec {
   "A timelineactor " should "broadcast a succesfully saved tweet" in {
     within(500 millis) {
       system.eventStream.subscribe(testActor, classOf[Tweet])
-      val tweet = TimelineActor.Tweet(User("test"), "Hello World!") 
+      val tweet = TimelineActor.Tweet(User("test"), "Hello World!")
       
       actorRef ! tweet
       expectMsg(Status.Success)
@@ -33,7 +33,6 @@ class TimelineActorSpec extends ActorSpec {
     }
   }
   
-
   def actorRef = system.actorOf(TimelineActorManager.props)
 
 }

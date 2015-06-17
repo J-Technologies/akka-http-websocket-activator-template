@@ -11,6 +11,7 @@ import reactive.receive.TimelineActor.Tweet
 import reactive.receive.User
 import spray.json.DefaultJsonProtocol
 import spray.json.pimpAny
+import akka.actor.ActorSystem
 
 trait TweetJsonProtocol extends DefaultJsonProtocol {
   implicit val userFormat = jsonFormat1(User.apply)
@@ -20,8 +21,8 @@ trait TweetJsonProtocol extends DefaultJsonProtocol {
 }
 
 object TweetFlow extends TweetJsonProtocol {
-  val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](TimelineSourceActor.props)
-  private[push] val websocketMessageSource = tweetSource map toMessage
+  private val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](TimelineSourceActor.props)
+  private val websocketMessageSource = tweetSource map toMessage
 
   def websocketFlow: Flow[Message, Message, Unit] = {
     Flow.wrap(Sink.ignore, websocketMessageSource)(Keep.left)
@@ -29,10 +30,10 @@ object TweetFlow extends TweetJsonProtocol {
 }
 
 class HashtagFlow(hashtag: String) extends TweetJsonProtocol {
-  val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](HashtagSourceActor.props(hashtag))
+  private val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](HashtagSourceActor.props(hashtag))
   private val websocketMessageSource = tweetSource map toMessage
 
-  def websocketFlow: Flow[Message, Message, Unit] = {
+  def websocketFlow(implicit system: ActorSystem): Flow[Message, Message, Unit] = {
     Flow.wrap(Sink.ignore, websocketMessageSource)(Keep.left)
   }
 }
