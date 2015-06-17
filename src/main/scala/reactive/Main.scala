@@ -32,9 +32,9 @@ import scala.concurrent.Await
 object Main extends App {
   implicit val system = ActorSystem("webapi")
   implicit val executor = system.dispatcher
-  implicit val materializer = ActorFlowMaterializer()
   implicit val timeout = Timeout(1000 millis)
 
+  implicit val materializer = ActorFlowMaterializer()
   val serverBinding = Http().bindAndHandle(interface = "0.0.0.0", port = 8080, handler = mainFlow)
 
   def mainFlow(implicit system: ActorSystem, timeout: Timeout, executor: ExecutionContext): Route = {
