@@ -15,12 +15,21 @@ import spray.json.pimpAny
 trait TweetJsonProtocol extends DefaultJsonProtocol {
   implicit val userFormat = jsonFormat1(User.apply)
   implicit val tweetFormat = jsonFormat2(Tweet.apply)
+
+  private[push] def toMessage(tweet: Tweet): Message = TextMessage.Strict(tweet.toJson.compactPrint)
 }
 
 object TweetFlow extends TweetJsonProtocol {
-  private def toMessage(tweet: Tweet): Message = TextMessage.Strict(tweet.toJson.compactPrint)
+  val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](TimelineSourceActor.props)
+  private[push] val websocketMessageSource = tweetSource map toMessage
 
-  private val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](TimelineSourceActor.props)
+  def websocketFlow: Flow[Message, Message, Unit] = {
+    Flow.wrap(Sink.ignore, websocketMessageSource)(Keep.left)
+  }
+}
+
+class HashtagFlow(hashtag: String) extends TweetJsonProtocol {
+  val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](HashtagSourceActor.props(hashtag))
   private val websocketMessageSource = tweetSource map toMessage
 
   def websocketFlow: Flow[Message, Message, Unit] = {

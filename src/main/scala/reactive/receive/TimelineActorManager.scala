@@ -3,8 +3,7 @@ package reactive.receive
 import akka.actor.Props
 import akka.actor.Actor 
 
-/** An actor that locates StudentActor and manages their life cycle. */
-class TimelineActorManager() extends Actor {
+class TimelineActorManager extends Actor {
 
   override def receive = {
     case tweet: TimelineActor.Tweet =>
