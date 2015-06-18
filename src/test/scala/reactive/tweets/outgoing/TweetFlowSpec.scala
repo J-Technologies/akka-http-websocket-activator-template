@@ -1,10 +1,10 @@
-package reactive.push
+package reactive.tweets.outgoing
 
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.stream.ActorFlowMaterializer
 import akka.stream.testkit.scaladsl.{TestSink, TestSource}
 import reactive.ActorTestUtils
-import reactive.receive.{TimelineActor, User}
+import reactive.tweets.domain.{Tweet, User}
 
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
@@ -27,7 +27,7 @@ class TweetFlowSpec extends ActorTestUtils {
     val sut = TweetFlow.websocketFlow.runWith(TestSource.probe[Message], TestSink.probe[Message])
     val (_, mockSink) = sut
     
-    val tweet = TimelineActor.Tweet(User("test"), "Hello World!")
+    val tweet = Tweet(User("test"), "Hello World!")
     system.eventStream.publish(tweet)
 
     mockSink.request(1)
@@ -40,7 +40,7 @@ class TweetFlowSpec extends ActorTestUtils {
     val sut = HashtagFlow(hashtag).websocketFlow.runWith(TestSource.probe[Message], TestSink.probe[Message])
     val (_, mockSink) = sut
 
-    val tweet = TimelineActor.Tweet(User("test"), s"Hello World! #${hashtag}")
+    val tweet = Tweet(User("test"), s"Hello World! #${hashtag}")
     system.eventStream.publish(tweet)
 
     mockSink.request(1)
@@ -52,7 +52,7 @@ class TweetFlowSpec extends ActorTestUtils {
     val sut = HashtagFlow("test-ok").websocketFlow.runWith(TestSource.probe[Message], TestSink.probe[Message])
     val (_, mockSink) = sut
 
-    val tweet = TimelineActor.Tweet(User("test"), "Hello World! #otherhashtag")
+    val tweet = Tweet(User("test"), "Hello World! #otherhashtag")
     system.eventStream.publish(tweet)
 
     mockSink.request(1)

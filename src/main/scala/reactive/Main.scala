@@ -12,8 +12,9 @@ import akka.http.scaladsl.server.RouteResult.route2HandlerFlow
 import akka.pattern.ask
 import akka.stream.ActorFlowMaterializer
 import akka.util.Timeout
-import reactive.push.{HashtagFlow, TweetFlow}
-import reactive.receive.{TimelineActor, TimelineActorManager, User}
+import reactive.tweets.domain.{Tweet, User}
+import reactive.tweets.incoming.TweetPublisherActorManager
+import reactive.tweets.outgoing.{UserFlow, HashtagFlow, TweetFlow}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
@@ -28,16 +29,21 @@ object Main extends App {
   val serverBinding = Http().bindAndHandle(interface = "0.0.0.0", port = 8080, handler = mainFlow)
 
   def mainFlow(implicit system: ActorSystem, timeout: Timeout, executor: ExecutionContext): Route = {
-    (get & path("post")) {
+    (get & pathPrefix("post") & path(Segment)) { userName =>
       complete {
-        val saved = system.actorOf(TimelineActorManager.props) ? TimelineActor.Tweet(User("test"), "cool")
+        val saved = system.actorOf(TweetPublisherActorManager.props) ? Tweet(User(userName), "cool")
         saved.map(_ => "Akka bla bla bla")
       }
     } ~
       get {
          websocketAllTweets ~
-           websocketTweetsWithHashtag
+         websocketTweetsWithHashtag ~
+         websocketTweetsOfUser
       }
+  }
+
+  private def websocketTweetsOfUser = (pathPrefix("users") & path(Segment)) { userName =>
+    handleWebsocketMessages(UserFlow(userName).websocketFlow)
   }
 
   private def websocketAllTweets = pathEndOrSingleSlash {

@@ -1,18 +1,16 @@
-package reactive.receive
+package reactive.tweets.incoming
 
-import akka.actor.Props
-import akka.actor.Status
-import akka.actor.actorRef2Scala
+import akka.actor.{Props, Status}
 import akka.persistence.PersistentActor
-import reactive.receive.TimelineActor.Tweet
+import reactive.tweets.domain.{Tweet, User}
 
-object TimelineActor {
-  def props(user: User): Props = Props(new TimelineActor(user))
+object TweetPublisherActor {
+  def props(user: User): Props = Props(new TweetPublisherActor(user))
 
-  case class Tweet(user: User, text: String)
+
 }
 
-class TimelineActor(val user: User) extends PersistentActor {
+class TweetPublisherActor(val user: User) extends PersistentActor {
 
   override def persistenceId = user.name
 
@@ -31,4 +29,5 @@ class TimelineActor(val user: User) extends PersistentActor {
     case tweet: Tweet => println(tweet)
     case _            =>
   }
+
 }
