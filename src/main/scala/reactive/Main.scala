@@ -3,8 +3,9 @@ package reactive
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.ToResponseMarshallable.apply
+import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directive.{addByNameNullaryApply, addDirectiveApply}
-import akka.http.scaladsl.server.Directives.{complete, enhanceRouteWithConcatenation, get, getFromResource, handleWebsocketMessages, path, pathPrefix}
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.PathMatcher.segmentStringToPathMatcher
 import akka.http.scaladsl.server.PathMatchers.Segment
 import akka.http.scaladsl.server.Route
@@ -18,8 +19,8 @@ import reactive.tweets.incoming.TweetPublisherActorManager
 import reactive.tweets.marshalling.TweetJsonProtocol
 import reactive.tweets.outgoing.{HashtagFlow, TweetFlow, UserFlow}
 
-import scala.concurrent.{Future, ExecutionContext}
 import scala.concurrent.duration.DurationInt
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 object Main extends App with TweetJsonProtocol {
@@ -31,46 +32,54 @@ object Main extends App with TweetJsonProtocol {
   val serverBinding = Http().bindAndHandle(interface = "0.0.0.0", port = 8080, handler = mainFlow)
 
   def mainFlow(implicit system: ActorSystem, timeout: Timeout, executor: ExecutionContext): Route = {
-    (get & pathPrefix("post") & path(Segment)) { userName =>
+    def getLatestTweetsOfUser = (pathPrefix("users") & path(Segment)) { userName =>
       complete {
-        val saved = system.actorOf(TweetPublisherActorManager.props) ? Tweet(User(userName), "cool")
-        saved.map(_ => "Akka bla bla bla")
+        val response = (system.actorOf(TweetPublisherActorManager.props) ? GetLastTen(User(userName))).asInstanceOf[Future[LastTenResponse]]
+        response map (_.lastTen)
       }
+    }
+
+    def websocketTweetsOfUser = (pathPrefix("users") & path(Segment)) { userName =>
+      handleWebsocketMessages(UserFlow(userName).websocketFlow)
+    }
+
+    def websocketAllTweets = path("all") {
+      handleWebsocketMessages(TweetFlow.websocketFlow)
+    }
+
+    def websocketTweetsWithHashtag = {
+      (pathPrefix("hashtag") & path(Segment)) { hashtag =>
+        handleWebsocketMessages(HashtagFlow(hashtag).websocketFlow)
+      }
+    }
+
+    def postTweet = {
+      entity(as[Tweet]) { tweet =>
+        complete {
+          (system.actorOf(TweetPublisherActorManager.props) ? tweet).map(_ => StatusCodes.NoContent)
+        }
+      }
+    }
+
+    // Frontend
+    def index = (path("") | pathPrefix("index.htm")) { getFromResource("index.html") }
+    def css = (pathPrefix("css") & path(Segment)) { resource => getFromResource(s"css/$resource") }
+    def fonts = (pathPrefix("fonts") & path(Segment)) { resource => getFromResource(s"fonts/$resource") }
+    def img = (pathPrefix("img") & path(Segment)) { resource => getFromResource(s"img/$resource") }
+    def js = (pathPrefix("js") & path(Segment)) { resource => getFromResource(s"js/$resource") }
+
+    get {
+       index ~ css ~ fonts ~ img ~ js ~
+       getLatestTweetsOfUser ~
+       websocketAllTweets ~
+       websocketTweetsWithHashtag ~
+       websocketTweetsOfUser
     } ~
-      get {
-         index ~ css ~ fonts ~ img ~ js ~
-         getLatestTweetsOfUser ~
-         websocketAllTweets ~
-         websocketTweetsWithHashtag ~
-         websocketTweetsOfUser
-      }
-  }
-
-  private def getLatestTweetsOfUser = (pathPrefix("users") & path(Segment)) { userName =>
-    complete {
-      val response = (system.actorOf(TweetPublisherActorManager.props) ? GetLastTen(User(userName))).asInstanceOf[Future[LastTenResponse]]
-      response map (_.lastTen)
+    post {
+      postTweet
     }
+
   }
 
-  private def websocketTweetsOfUser = (pathPrefix("users") & path(Segment)) { userName =>
-    handleWebsocketMessages(UserFlow(userName).websocketFlow)
-  }
 
-  private def websocketAllTweets = path("all") {
-    handleWebsocketMessages(TweetFlow.websocketFlow)
-  }
-
-  private def websocketTweetsWithHashtag = {
-    (pathPrefix("hashtag") & path(Segment)) { hashtag =>
-      handleWebsocketMessages(HashtagFlow(hashtag).websocketFlow)
-    }
-  }
-
-  // Frontend
-  private def index = (path("") | pathPrefix("index.htm")) { getFromResource("index.html") }
-  private def css = (pathPrefix("css") & path(Segment)) { resource => getFromResource(s"css/$resource") }
-  private def fonts = (pathPrefix("fonts") & path(Segment)) { resource => getFromResource(s"fonts/$resource") }
-  private def img = (pathPrefix("img") & path(Segment)) { resource => getFromResource(s"img/$resource") }
-  private def js = (pathPrefix("js") & path(Segment)) { resource => getFromResource(s"js/$resource") }
 }

@@ -18,7 +18,6 @@ class TweetPublisherActor(val user: User) extends PersistentActor {
 
   override def receiveCommand = {
     case tweet: Tweet =>
-      println("yadda " + tweet)
       persist(tweet) { event =>
         sender() ! Status.Success
         context.system.eventStream.publish(tweet)

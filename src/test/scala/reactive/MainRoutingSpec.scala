@@ -1,32 +1,27 @@
 package reactive
 
-import scala.concurrent.duration.DurationInt
-import scala.language.postfixOps
-
-import org.scalatest.FlatSpec
-import org.scalatest.Matchers
-
-import akka.http.scaladsl.model.HttpRequest
-import akka.http.scaladsl.model.HttpResponse
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.model.StatusCodes.OK
-import akka.http.scaladsl.model.headers.CustomHeader
-import akka.http.scaladsl.model.headers.Upgrade
-import akka.http.scaladsl.model.headers.UpgradeProtocol
-import akka.http.scaladsl.model.ws.Message
-import akka.http.scaladsl.model.ws.UpgradeToWebsocket
+import akka.http.scaladsl.model.ContentTypes.`application/json`
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
+import akka.http.scaladsl.model.StatusCodes.NoContent
+import akka.http.scaladsl.model.headers.{CustomHeader, Upgrade, UpgradeProtocol}
+import akka.http.scaladsl.model.ws.{Message, UpgradeToWebsocket}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import akka.stream.ActorFlowMaterializer
 import akka.stream.FlowMaterializer
 import akka.stream.scaladsl.Flow
 import akka.util.Timeout
+import org.scalatest.{FlatSpec, Matchers}
+import reactive.tweets.domain.{Tweet, User}
+import reactive.tweets.marshalling.TweetJsonProtocol
 
-class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest {
+import scala.concurrent.duration.DurationInt
+import scala.language.postfixOps
+
+class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest with TweetJsonProtocol {
   implicit val timeout = Timeout(1000 millis)
 
-  "Main" should "respond to 'post' on /post" in {
-    Get("/post/username") ~> Main.mainFlow ~> check {
-      status shouldBe OK
+  "Main" should "allow to post a tweet for a user" in {
+    Post("/", Tweet(User("Test"), "Some tweet")) ~> Main.mainFlow ~> check {
+      status shouldBe NoContent
     }
   }
 
