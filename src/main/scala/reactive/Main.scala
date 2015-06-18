@@ -1,19 +1,10 @@
 package reactive
 
-import scala.concurrent.duration.DurationInt
-import scala.language.postfixOps
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.ToResponseMarshallable.apply
-import akka.http.scaladsl.server.Directive.addByNameNullaryApply
-import akka.http.scaladsl.server.Directive.addDirectiveApply
-import akka.http.scaladsl.server.Directives.complete
-import akka.http.scaladsl.server.Directives.enhanceRouteWithConcatenation
-import akka.http.scaladsl.server.Directives.get
-import akka.http.scaladsl.server.Directives.handleWebsocketMessages
-import akka.http.scaladsl.server.Directives.path
-import akka.http.scaladsl.server.Directives.pathEndOrSingleSlash
-import akka.http.scaladsl.server.Directives.pathPrefix
+import akka.http.scaladsl.server.Directive.{addByNameNullaryApply, addDirectiveApply}
+import akka.http.scaladsl.server.Directives.{complete, enhanceRouteWithConcatenation, get, handleWebsocketMessages, path, pathEndOrSingleSlash, pathPrefix}
 import akka.http.scaladsl.server.PathMatcher.segmentStringToPathMatcher
 import akka.http.scaladsl.server.PathMatchers.Segment
 import akka.http.scaladsl.server.Route
@@ -21,13 +12,12 @@ import akka.http.scaladsl.server.RouteResult.route2HandlerFlow
 import akka.pattern.ask
 import akka.stream.ActorFlowMaterializer
 import akka.util.Timeout
-import reactive.push.HashtagFlow
-import reactive.push.TweetFlow
-import reactive.receive.TimelineActor
-import reactive.receive.TimelineActorManager
-import reactive.receive.User
+import reactive.push.{HashtagFlow, TweetFlow}
+import reactive.receive.{TimelineActor, TimelineActorManager, User}
+
 import scala.concurrent.ExecutionContext
-import scala.concurrent.Await
+import scala.concurrent.duration.DurationInt
+import scala.language.postfixOps
 
 object Main extends App {
   implicit val system = ActorSystem("webapi")
@@ -45,16 +35,18 @@ object Main extends App {
       }
     } ~
       get {
-          pathEndOrSingleSlash {
-            handleWebsocketMessages(TweetFlow.websocketFlow)
-          } ~
-          websocketHashtag
+         websocketAllTweets ~
+           websocketTweetsWithHashtag
       }
   }
 
-  private def websocketHashtag = {
+  private def websocketAllTweets = pathEndOrSingleSlash {
+    handleWebsocketMessages(TweetFlow.websocketFlow)
+  }
+
+  private def websocketTweetsWithHashtag = {
     (pathPrefix("hashtag") & path(Segment)) { hashtag =>
-      handleWebsocketMessages(new HashtagFlow(hashtag).websocketFlow)
+      handleWebsocketMessages(HashtagFlow(hashtag).websocketFlow)
     }
   }
 }

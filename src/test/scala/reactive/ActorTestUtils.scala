@@ -12,7 +12,7 @@ import akka.testkit.DefaultTimeout
 import akka.testkit.ImplicitSender
 import akka.testkit.TestKit
 
-class ActorSpec extends TestKit(ActorSpec.actorSystem())
+class ActorTestUtils extends TestKit(ActorTestUtils.actorSystem())
   with DefaultTimeout with ImplicitSender
   with FlatSpecLike with Matchers with BeforeAndAfterAll {
   override protected def afterAll() = shutdown()
@@ -24,7 +24,7 @@ class ActorSpec extends TestKit(ActorSpec.actorSystem())
   }
 }
 
-object ActorSpec {
+object ActorTestUtils {
   def actorSystem() = ActorSystem("TestKitActorSystem")
 }
 

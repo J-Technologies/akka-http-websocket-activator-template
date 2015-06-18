@@ -37,3 +37,7 @@ class HashtagFlow(hashtag: String) extends TweetSource with TweetJsonProtocol {
     Flow.wrap(Sink.ignore, tweetsWithHashtag(hashtag) map toMessage)(Keep.left)
   }
 }
+
+object HashtagFlow {
+  def apply(hashtag: String) = new HashtagFlow(hashtag)
+}
