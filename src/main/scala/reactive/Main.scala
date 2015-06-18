@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.ToResponseMarshallable.apply
 import akka.http.scaladsl.server.Directive.{addByNameNullaryApply, addDirectiveApply}
-import akka.http.scaladsl.server.Directives.{complete, enhanceRouteWithConcatenation, get, handleWebsocketMessages, path, pathEndOrSingleSlash, pathPrefix}
+import akka.http.scaladsl.server.Directives.{complete, enhanceRouteWithConcatenation, get, getFromResource, handleWebsocketMessages, path, pathPrefix}
 import akka.http.scaladsl.server.PathMatcher.segmentStringToPathMatcher
 import akka.http.scaladsl.server.PathMatchers.Segment
 import akka.http.scaladsl.server.Route
@@ -14,7 +14,7 @@ import akka.stream.ActorFlowMaterializer
 import akka.util.Timeout
 import reactive.tweets.domain.{Tweet, User}
 import reactive.tweets.incoming.TweetPublisherActorManager
-import reactive.tweets.outgoing.{UserFlow, HashtagFlow, TweetFlow}
+import reactive.tweets.outgoing.{HashtagFlow, TweetFlow, UserFlow}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
@@ -36,6 +36,7 @@ object Main extends App {
       }
     } ~
       get {
+         index ~ css ~ fonts ~ img ~ js ~
          websocketAllTweets ~
          websocketTweetsWithHashtag ~
          websocketTweetsOfUser
@@ -46,7 +47,7 @@ object Main extends App {
     handleWebsocketMessages(UserFlow(userName).websocketFlow)
   }
 
-  private def websocketAllTweets = pathEndOrSingleSlash {
+  private def websocketAllTweets = path("all") {
     handleWebsocketMessages(TweetFlow.websocketFlow)
   }
 
@@ -55,4 +56,11 @@ object Main extends App {
       handleWebsocketMessages(HashtagFlow(hashtag).websocketFlow)
     }
   }
+
+  // Frontend
+  private def index = (path("") | pathPrefix("index.htm")) { getFromResource("index.html") }
+  private def css = (pathPrefix("css") & path(Segment)) { resource => getFromResource(s"css/$resource") }
+  private def fonts = (pathPrefix("fonts") & path(Segment)) { resource => getFromResource(s"fonts/$resource") }
+  private def img = (pathPrefix("img") & path(Segment)) { resource => getFromResource(s"img/$resource") }
+  private def js = (pathPrefix("js") & path(Segment)) { resource => getFromResource(s"js/$resource") }
 }
