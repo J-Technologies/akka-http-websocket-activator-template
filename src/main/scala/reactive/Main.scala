@@ -19,8 +19,8 @@ import reactive.tweets.incoming.TweetPublisherActorManager
 import reactive.tweets.marshalling.TweetJsonProtocol
 import reactive.tweets.outgoing.{HashtagFlow, TweetFlow, UserFlow}
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
-import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 object Main extends App with TweetJsonProtocol {
@@ -34,8 +34,9 @@ object Main extends App with TweetJsonProtocol {
   def mainFlow(implicit system: ActorSystem, timeout: Timeout, executor: ExecutionContext): Route = {
     def getLatestTweetsOfUser = (pathPrefix("users") & path(Segment)) { userName =>
       complete {
-        val response = (system.actorOf(TweetPublisherActorManager.props) ? GetLastTen(User(userName))).asInstanceOf[Future[LastTenResponse]]
-        response map (_.lastTen)
+        system.actorOf(TweetPublisherActorManager.props).ask(GetLastTen(User(userName)))
+          .mapTo[LastTenResponse]
+          .map(_.lastTen)
       }
     }
 
