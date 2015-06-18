@@ -17,9 +17,12 @@ libraryDependencies ++= {
     //test deps
     "com.typesafe.akka" %% "akka-http-testkit-experimental" % akkaStreamV,
     "com.typesafe.akka" %% "akka-stream-testkit-experimental" % akkaStreamV,
+    "com.migesok" %% "akka-persistence-in-memory-snapshot-store" % "0.1.1",
     "org.scalatest" %% "scalatest" % "2.2.5" % "test",
     "junit" % "junit" % "4.10" % "test"
   )
 }
 
 fork in run := true
+
+resolvers += "migesok at bintray" at "http://dl.bintray.com/migesok/maven"
