@@ -54,7 +54,18 @@ class TimelineActorSpec extends ActorTestUtils {
         timelineActorManager ! tweetLatest
         expectMsg(Status.Success)
       }
-      
+
+      timelineActorManager ! GetLastTen(tweet.user)
+
+      expectMsg(LastTenResponse((1 to 10).map(_ => tweetLatest).toList))
+    }
+  }
+  
+  it should "recover with the latest messages" in {
+    within(500 millis) {
+
+      val user = system.actorOf(TweetPublisherActor.props(tweet.user))
+      system.stop(user)
       timelineActorManager ! GetLastTen(tweet.user)
 
       expectMsg(LastTenResponse((1 to 10).map(_ => tweetLatest).toList))

@@ -38,13 +38,13 @@ class TweetPublisherActor(val user: User) extends PersistentActor {
 
   override def receiveRecover = {
     case tweet: Tweet =>
-      addToLastTen(tweet)
+      addToLatest(tweet)
     case SnapshotOffer(_, latest: List[Tweet] @unchecked) =>
       latestTweets = latest
     case _ =>
   }
 
-  private def addToLastTen(tweet: Tweet) {
+  private def addToLatest(tweet: Tweet) {
     latestTweets = tweet :: latestTweets
 
     if (latestTweets.length > 100) {
