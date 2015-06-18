@@ -1,16 +1,13 @@
 package reactive.receive
 
+import akka.actor.Status
+import reactive.ActorTestUtils
+import reactive.receive.TimelineActor.Tweet
+
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
 
-import org.junit.runner.RunWith
-
-import akka.actor.Status
-import akka.actor.actorRef2Scala
-import reactive.ActorSpec
-import reactive.receive.TimelineActor.Tweet
-
-class TimelineActorSpec extends ActorSpec {
+class TimelineActorSpec extends ActorTestUtils {
 
   "A timelineactormanager " should "persist the statement successfully" in {
     within(500 millis) {

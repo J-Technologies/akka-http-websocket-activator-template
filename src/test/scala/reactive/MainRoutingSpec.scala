@@ -22,26 +22,21 @@ import akka.stream.scaladsl.Flow
 import akka.util.Timeout
 
 class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest {
-  "Main" should "respond to 'post' on /post" in {
-    implicit val timeout = Timeout(1000 millis)
-    implicit val materializer = ActorFlowMaterializer()
+  implicit val timeout = Timeout(1000 millis)
 
+  "Main" should "respond to 'post' on /post" in {
     Get("/post") ~> Main.mainFlow ~> check {
       status shouldBe OK
     }
   }
 
   it should "handle websocket requests for tweets" in {
-    implicit val timeout = Timeout(1000 millis)
-    implicit val materializer = ActorFlowMaterializer()
     Get("/") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
       status shouldEqual StatusCodes.SwitchingProtocols
     }
   }
   
   it should "handle websocket requests for hashtags" in {
-    implicit val timeout = Timeout(1000 millis)
-    implicit val materializer = ActorFlowMaterializer()
     Get("/hashtag/test") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
       status shouldEqual StatusCodes.SwitchingProtocols
     }
@@ -57,8 +52,8 @@ class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest {
   private def upgradeToWebsocketHeaderMock: UpgradeToWebsocket =
     new CustomHeader() with UpgradeToWebsocket {
       override def requestedProtocols = Nil
-      override def name = ""
-      override def value = "UpgradeToWebsocketMock"
+      override def name = "dummy"
+      override def value = "dummy"
 
       override def handleMessages(handlerFlow: Flow[Message, Message, Any], subprotocol: Option[String])(implicit mat: FlowMaterializer): HttpResponse =
         HttpResponse(StatusCodes.SwitchingProtocols)
