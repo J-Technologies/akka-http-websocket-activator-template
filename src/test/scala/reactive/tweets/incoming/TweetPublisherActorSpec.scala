@@ -23,7 +23,7 @@ class TweetPublisherActorSpec extends ActorTestUtils {
     }
   }
 
-  "A Timeline Actor " should "broadcast a succesfully saved tweet" in {
+  "A Timeline Actor " should "broadcast a successfully saved tweet" in {
     within(500 millis) {
       system.eventStream.subscribe(testActor, classOf[Tweet])
 

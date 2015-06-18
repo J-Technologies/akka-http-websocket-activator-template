@@ -13,7 +13,7 @@ $(document).ready(function() {
         $.ajax({
             url: "http://localhost:8080/users/" + user
         }).then(function (tweets) {
-            tweets.forEach(function(tweet) {
+            tweets.reverse().forEach(function(tweet) {
                appendTweet(tweet);
             });
         });

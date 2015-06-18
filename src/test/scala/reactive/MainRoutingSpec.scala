@@ -1,10 +1,9 @@
 package reactive
 
-import akka.http.scaladsl.model.ContentTypes.`application/json`
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
 import akka.http.scaladsl.model.StatusCodes.NoContent
 import akka.http.scaladsl.model.headers.{CustomHeader, Upgrade, UpgradeProtocol}
 import akka.http.scaladsl.model.ws.{Message, UpgradeToWebsocket}
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.stream.FlowMaterializer
 import akka.stream.scaladsl.Flow
