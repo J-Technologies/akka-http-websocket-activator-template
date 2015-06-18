@@ -2,26 +2,24 @@ package reactive
 
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
+
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers
-import akka.http.impl.engine.ws.InternalCustomHeader
-import akka.http.impl.engine.ws.InternalCustomHeader
+
 import akka.http.scaladsl.model.HttpRequest
+import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.model.StatusCodes.OK
+import akka.http.scaladsl.model.headers.CustomHeader
+import akka.http.scaladsl.model.headers.Upgrade
+import akka.http.scaladsl.model.headers.UpgradeProtocol
 import akka.http.scaladsl.model.ws.Message
 import akka.http.scaladsl.model.ws.UpgradeToWebsocket
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import akka.http.scaladsl.model.headers.{ UpgradeProtocol, Upgrade }
-import akka.pattern.ask
 import akka.stream.ActorFlowMaterializer
 import akka.stream.FlowMaterializer
-import akka.util.Timeout
-import akka.http.impl.engine.ws.InternalCustomHeader
-import akka.http.scaladsl.model.HttpResponse
 import akka.stream.scaladsl.Flow
-import akka.http.scaladsl.model.headers.CustomHeader
-import akka.http.impl.engine.ws.InternalCustomHeader
+import akka.util.Timeout
 
 class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest {
   "Main" should "respond to 'post' on /post" in {

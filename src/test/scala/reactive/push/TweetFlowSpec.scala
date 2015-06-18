@@ -1,24 +1,19 @@
 package reactive.push
 
-import reactive.ActorSpec
-import akka.actor.Status
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import scala.language.postfixOps
-import scala.concurrent.duration.DurationInt
-import akka.event.EventStream
-import akka.stream.testkit.TestSubscriber.Probe
-import reactive.receive.TimelineActor.Tweet
+
+import org.junit.runner.RunWith
+
+import akka.http.scaladsl.model.ws.Message
+import akka.http.scaladsl.model.ws.TextMessage
+import akka.stream.ActorFlowMaterializer
 import akka.stream.testkit.scaladsl.TestSink
 import akka.stream.testkit.scaladsl.TestSource
-import akka.http.scaladsl.model.ws.Message
-import akka.stream.ActorFlowMaterializer
-import akka.http.scaladsl.model.ws.TextMessage
+import reactive.ActorSpec
 import reactive.receive.TimelineActor
 import reactive.receive.TimelineActorManager
 import reactive.receive.User
 
-@RunWith(classOf[JUnitRunner])
 class TweetFlowSpec extends ActorSpec {
 
   "A tweetflow websocket " should "not respond to messages" in {
