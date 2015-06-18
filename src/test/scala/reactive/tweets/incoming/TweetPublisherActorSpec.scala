@@ -8,16 +8,16 @@ import scala.language.postfixOps
 import reactive.tweets.incoming.TweetPublisherActor.GetLastTen
 import reactive.tweets.incoming.TweetPublisherActor.LastTenResponse
 
-class TimelineActorSpec extends ActorTestUtils {
+class TweetPublisherActorSpec extends ActorTestUtils {
 
-  def timelineActorManager = system.actorOf(TweetPublisherActorManager.props)
+  def tweetPublisherActorManager = system.actorOf(TweetPublisherActorManager.props)
 
   val tweet = Tweet(User("test"), "Hello World!")
   val tweetLatest = Tweet(User("test"), "Hello World! again")
 
   "A Timeline Actor Manager " should "persist the tweet successfully" in {
     within(500 millis) {
-      timelineActorManager ! tweet
+      tweetPublisherActorManager ! tweet
       expectMsg(Status.Success)
       expectNoMsg()
     }
@@ -27,7 +27,7 @@ class TimelineActorSpec extends ActorTestUtils {
     within(500 millis) {
       system.eventStream.subscribe(testActor, classOf[Tweet])
 
-      timelineActorManager ! tweet
+      tweetPublisherActorManager ! tweet
       expectMsg(Status.Success)
       expectMsg(tweet)
       expectNoMsg()
@@ -39,9 +39,9 @@ class TimelineActorSpec extends ActorTestUtils {
   it should "save the latest tweets" in {
     within(500 millis) {
 
-      timelineActorManager ! tweetLatest
+      tweetPublisherActorManager ! tweetLatest
       expectMsg(Status.Success)
-      timelineActorManager ! GetLastTen(tweet.user)
+      tweetPublisherActorManager ! GetLastTen(tweet.user)
 
       expectMsg(LastTenResponse(List(tweetLatest, tweet, tweet)))
     }
@@ -51,11 +51,11 @@ class TimelineActorSpec extends ActorTestUtils {
     within(500 millis) {
 
       for (i <- 1 to 10) yield {
-        timelineActorManager ! tweetLatest
+        tweetPublisherActorManager ! tweetLatest
         expectMsg(Status.Success)
       }
 
-      timelineActorManager ! GetLastTen(tweet.user)
+      tweetPublisherActorManager ! GetLastTen(tweet.user)
 
       expectMsg(LastTenResponse((1 to 10).map(_ => tweetLatest).toList))
     }
@@ -66,7 +66,7 @@ class TimelineActorSpec extends ActorTestUtils {
 
       val user = system.actorOf(TweetPublisherActor.props(tweet.user))
       system.stop(user)
-      timelineActorManager ! GetLastTen(tweet.user)
+      tweetPublisherActorManager ! GetLastTen(tweet.user)
 
       expectMsg(LastTenResponse((1 to 10).map(_ => tweetLatest).toList))
     }

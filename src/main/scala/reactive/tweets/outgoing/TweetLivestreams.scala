@@ -1,17 +1,12 @@
 package reactive.tweets.outgoing
 
 import akka.actor.ActorRef
-import akka.http.scaladsl.model.ws.{Message, TextMessage}
+import akka.http.scaladsl.model.ws.Message
 import akka.stream.scaladsl.{Flow, Keep, Sink, Source}
-import reactive.tweets.domain.{Tweet, User}
-import spray.json.{DefaultJsonProtocol, pimpAny}
+import reactive.tweets.domain.Tweet
+import reactive.tweets.marshalling.TweetJsonProtocol
 
-trait TweetJsonProtocol extends DefaultJsonProtocol {
-  implicit val userFormat = jsonFormat1(User.apply)
-  implicit val tweetFormat = jsonFormat2(Tweet.apply)
 
-  private[outgoing] def toMessage(tweet: Tweet): Message = TextMessage.Strict(tweet.toJson.compactPrint)
-}
 
 trait TweetSource {
   private[outgoing] val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](TweetsSourceActor.props)

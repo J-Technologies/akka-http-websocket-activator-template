@@ -1,21 +1,22 @@
 package reactive.tweets.incoming
 
-import akka.actor.{ Actor, Props }
-import reactive.tweets.domain.Tweet
+import akka.actor.{Actor, Props}
+import reactive.tweets.domain.{Tweet, User}
 import reactive.tweets.incoming.TweetPublisherActor.GetLastTen
-import reactive.tweets.domain.WithUser
 
 class TweetPublisherActorManager extends Actor {
 
   override def receive = {
-    case tweet: WithUser =>
-      val name = tweet.user.name
-      val timelineActor = context.child(name).getOrElse(context.actorOf(TweetPublisherActor.props(tweet.user), name))
-      timelineActor forward tweet
+    case tweet: Tweet => forward(tweet, tweet.user.name)
 
-    case msg =>
-      throw new UnsupportedOperationException(s"received unexpected message $msg from ${sender()}")
+    case lastTen: GetLastTen => forward(lastTen, lastTen.user.name)
 
+    case msg => throw new UnsupportedOperationException(s"received unexpected message $msg from ${sender()}")
+  }
+
+  def forward(message: Any, userName: String) = {
+    val timelineActor = context.child(userName).getOrElse(context.actorOf(TweetPublisherActor.props(User(userName)), userName))
+    timelineActor forward message
   }
 }
 

@@ -13,14 +13,16 @@ import akka.pattern.ask
 import akka.stream.ActorFlowMaterializer
 import akka.util.Timeout
 import reactive.tweets.domain.{Tweet, User}
+import reactive.tweets.incoming.TweetPublisherActor.{GetLastTen, LastTenResponse}
 import reactive.tweets.incoming.TweetPublisherActorManager
+import reactive.tweets.marshalling.TweetJsonProtocol
 import reactive.tweets.outgoing.{HashtagFlow, TweetFlow, UserFlow}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
 
-object Main extends App {
+object Main extends App with TweetJsonProtocol {
   implicit val system = ActorSystem("webapi")
   implicit val executor = system.dispatcher
   implicit val timeout = Timeout(1000 millis)
@@ -37,10 +39,18 @@ object Main extends App {
     } ~
       get {
          index ~ css ~ fonts ~ img ~ js ~
+         getLatestTweetsOfUser ~
          websocketAllTweets ~
          websocketTweetsWithHashtag ~
          websocketTweetsOfUser
       }
+  }
+
+  private def getLatestTweetsOfUser = (pathPrefix("users") & path(Segment)) { userName =>
+    complete {
+      val response = (system.actorOf(TweetPublisherActorManager.props) ? GetLastTen(User(userName))).asInstanceOf[Future[LastTenResponse]]
+      response map (_.lastTen)
+    }
   }
 
   private def websocketTweetsOfUser = (pathPrefix("users") & path(Segment)) { userName =>
