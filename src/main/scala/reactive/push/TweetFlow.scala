@@ -22,6 +22,8 @@ trait TweetJsonProtocol extends DefaultJsonProtocol {
 
 trait TweetSource {
   private[push] val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](TimelineSourceActor.props)
+  
+  def tweetsWithHashtag(hashtag: String) = tweetSource filter (_.text contains hashtag)
 }
 
 object TweetFlow extends TweetSource with TweetJsonProtocol {
@@ -32,6 +34,6 @@ object TweetFlow extends TweetSource with TweetJsonProtocol {
 
 class HashtagFlow(hashtag: String) extends TweetSource with TweetJsonProtocol {
   def websocketFlow(implicit system: ActorSystem): Flow[Message, Message, Unit] = {
-    Flow.wrap(Sink.ignore, tweetSource.filter(_.text contains hashtag).map(toMessage))(Keep.left)
+    Flow.wrap(Sink.ignore, tweetsWithHashtag(hashtag) map toMessage)(Keep.left)
   }
 }
