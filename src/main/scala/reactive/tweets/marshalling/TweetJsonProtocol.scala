@@ -12,9 +12,9 @@ trait TweetJsonProtocol extends DefaultJsonProtocol {
    implicit val userFormat = jsonFormat1(User.apply)
    implicit val tweetFormat = jsonFormat2(Tweet.apply)
 
-   implicit val unitMarshaller: ToEntityMarshaller[Tweet] = SprayJsonSupport.sprayJsonMarshaller[Tweet]
-   implicit val unitListMarshaller: ToEntityMarshaller[List[Tweet]] = SprayJsonSupport.sprayJsonMarshaller[List[Tweet]]
-   implicit def unitUnmarshaller(implicit materializer: FlowMaterializer): FromEntityUnmarshaller[Tweet] =
+   implicit val tweetMarshaller: ToEntityMarshaller[Tweet] = SprayJsonSupport.sprayJsonMarshaller[Tweet]
+   implicit val tweetListMarshaller: ToEntityMarshaller[List[Tweet]] = SprayJsonSupport.sprayJsonMarshaller[List[Tweet]]
+   implicit def tweetUnmarshaller(implicit materializer: FlowMaterializer): FromEntityUnmarshaller[Tweet] =
       SprayJsonSupport.sprayJsonUnmarshaller[Tweet]
 
    def toMessage(tweet: Tweet): Message = TextMessage.Strict(tweet.toJson.compactPrint)

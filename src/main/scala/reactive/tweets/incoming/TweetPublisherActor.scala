@@ -4,6 +4,7 @@ import akka.actor.{Props, Status, actorRef2Scala}
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import reactive.tweets.domain.{Tweet, User}
 import reactive.tweets.incoming.TweetPublisherActor.{GetLastTen, LastTenResponse}
+import akka.persistence.SaveSnapshotSuccess
 
 object TweetPublisherActor {
   def props(user: User): Props = Props(new TweetPublisherActor(user))
@@ -26,6 +27,9 @@ class TweetPublisherActor(val user: User) extends PersistentActor {
     case GetLastTen(_) =>
       sender() ! LastTenResponse(latestTweets.take(10))
 
+      
+    case s: SaveSnapshotSuccess => 
+      
     case msg =>
       throw new UnsupportedOperationException(s"received unexpected message $msg from ${sender()}")
   }

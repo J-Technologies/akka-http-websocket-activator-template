@@ -35,7 +35,7 @@ class TweetFlowSpec extends ActorTestUtils with TweetSource {
     mockSink.expectNoMsg(noMessageTimeout)
   }
 
-  "The flow for tweets with hash  tag" should "only forward tweets with matching hash tag" in {
+  "The flow for tweets with hash tag" should "only forward tweets with matching hash tag" in {
     val hashTag = "test-ok"
     val sut = tweetFlowOfHashTag(hashTag).runWith(TestSource.probe[Message], TestSink.probe[Message])
     val (_, mockSink) = sut
