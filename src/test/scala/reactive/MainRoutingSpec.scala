@@ -35,6 +35,12 @@ class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest wit
       status shouldEqual StatusCodes.SwitchingProtocols
     }
   }
+  
+  it should "handle websocket requests for users" in {
+	  Get("/ws/tweets/users/test") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
+		  status shouldEqual StatusCodes.SwitchingProtocols
+	  }
+  }
 
   /** Only checks for upgrade header and then adds UpgradeToWebsocket mock header */
   private def emulateHttpCore(req: HttpRequest): HttpRequest =
