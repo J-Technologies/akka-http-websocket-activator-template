@@ -163,18 +163,11 @@
         Note: ignore the tweetFilter for now, this is just a convenience parameter to be able to construct specific streams,
         like the stream of tweets for a specific user, or the stream of tweets that contain a specific hash tag.
     </p>
-    <p>
-        The part where we construct the flow may feel a bit unintuitive so we'll spend some extra words on it. Your first
-        idea might have been to define some sort of bidirectional flow (e.g. <code>BidiFlow</code>). However this would not
-        be the correct approach. Contrary to HTTP, Websockets do not have the notion of Request -> Response. You can implement
-        Request -> Response but unlike HTTP it is not mandatory. Basically a Websocket lets you send messages and receive
-        messages, but these messages are not required to have any relation with each other.
-    </p>
 
     <p>
         We are only interested in one way communication with our Websocket. We push new tweets to the client on their
         arrival. Theoretically we could also receive messages over the same channel from the client. We just ignore those.
-        So what does this look like in terms of a flow?
+        So what does this look like in terms of a Flow?
     </p>
 
     <pre>
@@ -190,7 +183,7 @@
     </pre>
 
     <p>
-        The important thing to note is that the inner parts of the FLow (the Sink and the Source) have no connection
+        The important thing to note is that the inner parts of the Flow (the Sink and the Source) have no connection
         with each other. Incoming messages from the Websocket are ignored by routing them to the Ignore Sink
         while on the other hand the outgoing channel will be serviced by our transformed actor that is listening to the
         event bus:
