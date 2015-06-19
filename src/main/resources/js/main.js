@@ -9,15 +9,32 @@ var tweetHtml =
 
 $(document).ready(function() {
     var user = getUrlParameter('user');
+    var latestTweetsPath = (user && '/users/' + user) || "/all" ;
+
     if (user) {
         $.ajax({
-            url: "http://localhost:8080/users/" + user
+            url: "http://localhost:8080" + latestTweetsPath
         }).then(function (tweets) {
             tweets.reverse().forEach(function(tweet) {
                appendTweet(tweet);
             });
         });
     }
+
+    $("#post-tweet").submit(function(event) {
+        var json = {
+            user: { name: $("#user").val() },
+            text: $("#tweet").val()
+        };
+
+        $.ajax({
+            url: 'http://localhost:8080',
+            method: 'POST',
+            contentType: "application/json",
+            data: JSON.stringify(json)
+        });
+        event.preventDefault();
+    });
 
     function getUrlParameter(sParam) {
         var sPageURL = window.location.search.substring(1);

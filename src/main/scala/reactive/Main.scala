@@ -69,16 +69,14 @@ object Main extends App with TweetSource {
     def js = (pathPrefix("js") & path(Segment)) { resource => getFromResource(s"js/$resource") }
 
     get {
-       index ~ css ~ fonts ~ img ~ js ~
-       getLatestTweetsOfUser ~
-       websocketAllTweets ~
-       websocketTweetsWithHashtag ~
-       websocketTweetsOfUser
-    } ~
-    post {
+      index ~ css ~ fonts ~ img ~ js ~
+        getLatestTweetsOfUser ~
+        websocketAllTweets ~
+        websocketTweetsWithHashtag ~
+        websocketTweetsOfUser
+    } ~ post {
       postTweet
     }
-
   }
 
 

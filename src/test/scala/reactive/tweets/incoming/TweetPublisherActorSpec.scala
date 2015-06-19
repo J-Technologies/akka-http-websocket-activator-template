@@ -50,7 +50,7 @@ class TweetPublisherActorSpec extends ActorTestUtils {
   it should "save only the latest ten tweets" in {
     within(500 millis) {
 
-      for (i <- 1 to 10) yield {
+      for (i <- 1 to 100) yield {
         tweetPublisherActorManager ! tweetLatest
         expectMsg(Status.Success)
       }
