@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.ToResponseMarshallable.apply
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directive.{addByNameNullaryApply, addDirectiveApply}
+import akka.http.scaladsl.server.Directive.{ addByNameNullaryApply, addDirectiveApply }
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.PathMatcher.segmentStringToPathMatcher
 import akka.http.scaladsl.server.PathMatchers.Segment
@@ -13,8 +13,8 @@ import akka.http.scaladsl.server.RouteResult.route2HandlerFlow
 import akka.pattern.ask
 import akka.stream.ActorFlowMaterializer
 import akka.util.Timeout
-import reactive.tweets.domain.{Tweet, User}
-import reactive.tweets.incoming.TweetPublisherActor.{GetLastTen, LastTenResponse}
+import reactive.tweets.domain.{ Tweet, User }
+import reactive.tweets.incoming.TweetPublisherActor.{ GetLastTen, LastTenResponse }
 import reactive.tweets.incoming.TweetPublisherActorManager
 import reactive.tweets.outgoing.TweetSource
 
@@ -47,10 +47,8 @@ object Main extends App with TweetSource {
       handleWebsocketMessages(tweetFlowOfAll)
     }
 
-    def tweetsWithHashTagSocket = {
-      (pathPrefix("hashtag") & path(Segment)) { hashTag =>
-        handleWebsocketMessages(tweetFlowOfHashTag(hashTag))
-      }
+    def tweetsWithHashTagSocket = (pathPrefix("hashtag") & path(Segment)) { hashTag =>
+      handleWebsocketMessages(tweetFlowOfHashTag(hashTag))
     }
 
     def addTweet = {
@@ -71,7 +69,6 @@ object Main extends App with TweetSource {
     def fonts = (pathPrefix("fonts") & path(Segment)) { resource => getFromResource(s"fonts/$resource") }
     def img = (pathPrefix("img") & path(Segment)) { resource => getFromResource(s"img/$resource") }
     def js = (pathPrefix("js") & path(Segment)) { resource => getFromResource(s"js/$resource") }
-
 
     get {
       index ~ css ~ fonts ~ img ~ js

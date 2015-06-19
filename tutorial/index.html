@@ -26,7 +26,7 @@
 </div>
 
 <div>
-    <h2>An overview of the application</h2>
+    <h2>Part 1: An overview</h2>
 
     <p>
         In this tutorial we will use a simple Twitter like application to demonstrate the different techniques. You can
@@ -58,7 +58,7 @@
 </div>
 
 <div>
-    <h2>The first endpoint: posting a tweet</h2>
+    <h2>Part 1: Posting a tweet</h2>
     <p>
         We start in <a href="#code/src/main/scala/reactive/Main.scala" class="shortcut">Main.scala</a> which defines the
         routes. The route (in this case a REST endpoint) for posting a tweet is defined in the following method:
@@ -80,15 +80,15 @@
 </div>
 
 <div>
-    <h2>Using Akka Persistence to persist and recover tweets</h2>
+    <h2>Part 1: Using Akka Persistence</h2>
 
     <h3>Forwarding tweets to persistent actors</h3>
     <p>
         All posted tweets end up at the <a href="#code/src/main/scala/reactive/tweets/incoming/TweetPublisherActorManager.scala" class="shortcut">TweetPublisherActorManager</a>.
-        This actor just forwards the tweet to a persistent actor based on the user that posted the tweet. Because we
+        This actor forwards the tweet to a persistent actor based on the user that posted the tweet. Because we
         want to keep track of the last tweets of a user we associate each user with a dedicated persistent actor.
         The job of the <a href="#code/src/main/scala/reactive/tweets/incoming/TweetPublisherActorManager.scala" class="shortcut">TweetPublisherActorManager</a>
-        is to ensure the tweets end up at the correct persistent actors.
+        is to ensure the tweets end up at the correct persistent actor.
     </p>
 
     <h3>Persisting and recovering tweets</h3>
@@ -111,7 +111,7 @@
 </div>
 
 <div>
-    <h2>Transforming the event bus into a Source of tweets</h2>
+    <h2>Part 1: Reactive Streams</h2>
 
     <p>
        If we want to stream the tweets via websockets to our users we need to get them from somewhere. That place is the
@@ -148,7 +148,7 @@
     </p>
 </div>
 <div>
-    <h2>Rolling the Flow</h2>
+    <h2>Part 1: Running the Flow</h2>
     <p>
         In the previous section we described how to define an actor as a Reactive Streams Publisher. To start streaming
         we still need to instantiate the actor and - in one go - transform it into a Source. This is done in <a href="#code/src/main/scala/reactive/tweets/outgoing/TweetLivestreams.scala" class="shortcut">TweetLivestreams.scala</a>.
@@ -193,10 +193,24 @@
 </div>
 
 <div>
-    <h2>Finalizing the round trip: exposing the websocket through Akka Http</h2>
-        <p>
-
-        </p>
+  <h2>Part 1: Websocket</h2>
+  <p>
+        So we have a nice Flow, the next step is plugging it into Akka Http.<br>
+        The most notable part is <b>handleWebsocketMessages</b>
+        <pre><code>   def tweetsOfUserSocket = (pathPrefix("users") & path(Segment)) { userName =>
+      handleWebsocketMessages(tweetFlowOfUser(userName))
+    }
+    
+    pathPrefix("ws") {
+      pathPrefix("tweets") {
+        get {
+          tweetsOfUserSocket
+        }
+      }
+    }</code></pre>
+        Now we have explained all the pieces it's time to <a href="#run/system">Run the App</a><br>
+        In the next part we will extend the application with a flow containing tweet with a certain hashtag.
+  </p>
 </div>
 <div>
     <h2>Summary</h2>
