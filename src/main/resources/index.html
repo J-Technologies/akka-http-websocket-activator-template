@@ -8,79 +8,97 @@
     <title>Ordina Tweetstream</title>
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
- <!-- Fontawesome core CSS -->
-    <link href="css/font-awesome.min.css" rel="stylesheet" />
-     <!--GOOGLE FONT -->
+    <!-- Fontawesome core CSS -->
+    <link href="css/font-awesome.min.css" rel="stylesheet"/>
+    <!--GOOGLE FONT -->
     <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
-      <!-- Timeline -->
-    <link href="css/timeline.css" rel="stylesheet" />
-     <!-- custom CSS here -->
-    <link href="css/style.css" rel="stylesheet" />
+    <!-- Timeline -->
+    <link href="css/timeline.css" rel="stylesheet"/>
+    <!-- custom CSS here -->
+    <link href="css/style.css" rel="stylesheet"/>
 </head>
 <body class="bg-orange">
-    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
-        <div class="container">
-            <div class="navbar-header">
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-                <a class="navbar-brand" href="htttp://www.binarytheme.com">ORDINA </a>
-            </div>
-            <!-- Collect the nav links for toggling -->
-            <div class="collapse navbar-collapse navbar-ex1-collapse">
-                <ul class="nav navbar-nav">
-                    <li><a href="#">Home</a>
+<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="htttp://www.binarytheme.com">ORDINA </a>
+        </div>
+        <!-- Collect the nav links for toggling -->
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="#">Home</a>
+                </li>
+                <li><a href="#">About</a>
+                </li>
+                <li><a href="#">Services</a>
+                </li>
+                <li><a href="#">Contact</a>
+                </li>
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+<div class="container">
+    <div class="row ">
+        <div class="col-md-offset-2 col-md-8 col-sm-12 top-margin">
+            <form role="form" id="post-tweet">
+                <div class="form-group">
+                    <label for="user">Username:</label>
+                    <input type="text" class="form-control" id="user">
+                </div>
+                <div class="form-group">
+                    <label for="tweet">Tweet:</label>
+                    <input type="text" class="form-control" id="tweet">
+                </div>
+                <button id="submit" type="submit" class="btn btn-default pull-right">Tweet!</button>
+            </form>
+        </div>
+    </div>
+    <div class="row ">
+        <div class="col-md-offset-2 col-md-8 col-sm-12">
+            <div>
+                <ul class="timeline" id="tweets">
+                    <li class="time-label">
+                            <span class="bg-green">Timeline
+                            </span>
+                        <br/>
+                        <br/>
                     </li>
-                    <li><a href="#">About</a>
+                    <li>
+                        <i class="fa fa-user bg-aqua"></i>
+
+                        <div class="timeline-item">
+                            <span class="time"><i class="fa fa-clock-o"></i>02 January</span>
+
+                            <h3 class="timeline-header no-border"><a href="#">Venenatis blandit.</a> Duis auctor
+                                hendrerit metus</h3>
+                        </div>
                     </li>
-                    <li><a href="#">Services</a>
-                    </li>
-                    <li><a href="#">Contact</a>
+                    <li>
+                        <i class="fa fa-clock-o"></i>
                     </li>
                 </ul>
             </div>
-            <!-- /.navbar-collapse -->
         </div>
-        <!-- /.container -->
-    </nav>
-       <div class="container">
-            <div class="row ">            
 
-                <div class="col-md-offset-2 col-md-8 col-sm-12 top-margin" >
-                    <div>
-                        <ul class="timeline" id="tweets">
-                            <li class="time-label">
-                                <span class="bg-green">Timeline
-                                </span>
-                                <br />
-                                <br />
-                            </li>
-                            <li>
-                                <i class="fa fa-user bg-aqua"></i>
-                                <div class="timeline-item">
-                                    <span class="time"><i class="fa fa-clock-o"></i>02 January</span>
-                                    <h3 class="timeline-header no-border"><a href="#">Venenatis blandit.</a>  Duis auctor hendrerit metus</h3>
-                                </div>
-                            </li>
-                            <li>
-                                <i class="fa fa-clock-o"></i>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+    </div>
 
-            </div>
+</div>
+<!-- /.container -->
 
-        </div>
-    <!-- /.container -->
-
-   <!--Core JavaScript file  -->
-    <script src="js/jquery-1.10.2.js"></script>
-    <!--bootstrap JavaScript file  -->
-    <script src="js/bootstrap.js"></script>
-    <script src="js/main.js"></script>
+<!--Core JavaScript file  -->
+<script src="js/jquery-1.10.2.js"></script>
+<!--bootstrap JavaScript file  -->
+<script src="js/bootstrap.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>

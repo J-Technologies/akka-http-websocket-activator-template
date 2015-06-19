@@ -7,7 +7,7 @@ import reactive.tweets.domain.Tweet
 import reactive.tweets.marshalling.TweetJsonProtocol
 
 trait TweetSource extends TweetJsonProtocol {
-  private[outgoing] val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](TweetsSourceActor.props)
+  private val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](TweetsSourceActor.props)
   type TweetFilter = Tweet => Boolean
   
   def tweetFlow(tweetFilter: TweetFilter): Flow[Message, Message, Unit] =
