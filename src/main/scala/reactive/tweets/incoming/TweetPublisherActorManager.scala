@@ -15,8 +15,8 @@ class TweetPublisherActorManager extends Actor {
   }
 
   def forward(message: Any, userName: String) = {
-    val timelineActor = context.child(userName).getOrElse(context.actorOf(TweetPublisherActor.props(User(userName)), userName))
-    timelineActor forward message
+    val tweetPublisherActor = context.child(userName).getOrElse(context.actorOf(TweetPublisherActor.props(User(userName)), userName))
+    tweetPublisherActor forward message
   }
 }
 
