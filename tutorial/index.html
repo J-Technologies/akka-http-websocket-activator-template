@@ -4,47 +4,212 @@
 </head>
 <body>
 <div>
-    <h2>Typesafe Activator template</h2>
+    <h2>Getting started with this template</h2>
 
     <p>
-        You can use this template to create an empty Typesafe Activator template.  It can be used with the Activator to generate a template, or cloned.  The generated template can then be used as a base for an application template.  Further details are available at <a href="http://typesafe.com/activator/template/contribute">http://typesafe.com/activator/template/contribute</a>.
+        In this template you will learn the basics of
+        <strong>
+            <ul>
+                <li>Akka Http</li>
+                <li>Akka Persistence</li>
+                <li>Reactive Streams</li>
+                <li>Websockets</li>
+            </ul>
+        </strong>
     </p>
-
-</div>
-<div>
-    <h2>What you need to change</h2>
     <p>
-        There are various placeholder values which need to be replaced.  They are detailed below.
+        This template consists of two parts, a theoretical and a hands-on part. In the theoretical part you will learn
+        about the techniques mentioned above by means of a fully working example. In the hands-on part you will
+        test-drive
+        your own flow.
     </p>
+</div>
 
 <div>
-    <h4>project/build.properties</h4>
-    <p>Change the sbt version to the one required by your template</p>
+    <h2>An overview of the application</h2>
+
+    <p>
+        In this tutorial we will use a simple Twitter like application to demonstrate the different techniques. You can
+        post a tweet as a user and monitor a reactive timeline that changes whenever a new tweet is posted. We
+        simplified
+        the functionality a bit to keep the focus on the essentials.
+    </p>
+
+    <h3>Posting tweets</h3>
+
+    <p>
+        You can post tweets via a simple REST endpoint. A tweet consists of a username and the message. We use
+        <strong>Akka Persistence</strong> to keep track of the tweets for each user and be able to recover the
+        timeline for a user after a restart of the application. All incoming tweets are put on the event bus that comes
+        with <strong>Akka</strong> once they are persisted.
+    </p>
+
+    <h3>Streaming tweets via Websockets</h3>
+    <p>
+        On the other side an actor is subscribed to the event bus. This means the actor will be notified every time a
+        new tweet is put on the event bus. Since <strong>Akka</strong> implements the <a href="http://www.reactive-streams.org/announce-1.0.0">
+        Reactive Streams</a> SPI we can turn the actor into a <strong>Publisher</strong> which we can then turn into a
+        <strong>Source</strong> so we can use it in an <strong>Akka Http Flow</strong>.
+    </p>
+
+    <h3>The same story but now in a nice diagram</h3>
+    <img src="tutorial/img/flow.png" alt="The complete flow from posting a tweet to it being pushed on the websocket">
+    <caption>The complete flow from posting a tweet to it being pushed on the websocket</caption>
+</div>
+
+<div>
+    <h2>The first endpoint: posting a tweet</h2>
+    <p>
+        We start in <a href="#code/src/main/scala/reactive/Main.scala" class="shortcut">Main.scala</a> which defines the
+        routes. The route (in this case a REST endpoint) for posting a tweet is defined in the following method:
+
+        <pre><code>   def addTweet = {
+        post {
+            entity(as[Tweet]) { tweet =>
+                complete {
+                    (system.actorOf(TweetPublisherActorManager.props) ? tweet).map(_ => StatusCodes.NoContent)
+                }
+            }
+        }
+    }</code></pre>
+
+    The interesting part resides within the <code>complete</code> directive. There we create an actor (<code>TweetPublisherActorManager</code>)
+    and send it the tweet. For simplicity we ignore failure and transform a successful completion to an appropriate
+    HTTP status code.
+    </p>
+</div>
+
+<div>
+    <h2>Using Akka Persistence to persist and recover tweets</h2>
+
+    <h3>Forwarding tweets to persistent actors</h3>
+    <p>
+        All posted tweets end up at the <a href="#code/src/main/scala/reactive/tweets/incoming/TweetPublisherActorManager.scala" class="shortcut">TweetPublisherActorManager</a>.
+        This actor just forwards the tweet to a persistent actor based on the user that posted the tweet. Because we
+        want to keep track of the last tweets of a user we associate each user with a dedicated persistent actor.
+        The job of the <a href="#code/src/main/scala/reactive/tweets/incoming/TweetPublisherActorManager.scala" class="shortcut">TweetPublisherActorManager</a>
+        is to ensure the tweets end up at the correct persistent actors.
+    </p>
+
+    <h3>Persisting and recovering tweets</h3>
+    <p>
+        It is the job of the <a href="#code/src/main/scala/reactive/tweets/incoming/TweetPublisherActor.scala" class="shortcut">TweetPublisherActor</a>
+        to persist the tweet and put it on the event bus. It also knows how to recover the tweets for a user after a system failure.
+
+        <pre><code>case tweet: Tweet =>
+    persist(tweet) { event =>
+        sender() ! Status.Success
+        context.system.eventStream.publish(tweet)
+    }</code></pre>
+
+        After successful storage the callback is triggered. We send out a <code>Success</code> message and publish the tweet
+        on the event bus.
+    </p>
+    <p>
+        Next: <a href="#tutorial/4" class="shortcut">The other side of the coin: reacting to a posted tweet</a>
+    </p>
+</div>
+
+<div>
+    <h2>Transforming the event bus into a Source of tweets</h2>
+
+    <p>
+       If we want to stream the tweets via websockets to our users we need to get them from somewhere. That place is the
+       event bus. However, we need to perform some transformations before <strong>Akka Http</strong> is able to use the
+       bus as a source. The first step is hook up an actor to the event bus and expose that actor as a <code>Publisher</code>.
+    </p>
+    <p>
+        The <a href="https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.0/README.md#specification">Reactive Streams Specification</a> defines a Publisher as<br />
+    </p>
+
+    <blockquote><em>a provider of a potentially unbounded number of sequenced elements, publishing them according to the demand received from its Subscriber(s).</em></blockquote>
+
+    <p>
+        Akka implements the Reactive Streams SPI and fortunately the code to turn an actor into a Publisher is pretty straightforward:
+        we just have to extend <code>ActorPublisher</code> which exposes (among others) the <code>onNext</code> which we
+        can use to push a new tweet to our subscribers when one arrives. Only thing left is to subscribe to the event bus when the
+        actor is started. The code can be found in <a href="#code/src/main/scala/reactive/tweets/outgoing/TweetsSourceActor.scala" class="shortcut">TweetsSourceActor.scala</a>.
+    </p>
+
+    <pre><code>class TweetsSourceActor extends ActorPublisher[Tweet] {
+
+        override def preStart = {
+            context.system.eventStream.subscribe(self, classOf[Tweet])
+        }
+
+        override def receive = {
+            case tweet: Tweet => onNext(tweet)
+        }
+
+    }</code></pre>
+
+    <p>
+        Next: <a href="#tutorial/5" class="shortcut">Constructing a Flow from the Publisher</a>
+    </p>
 </div>
 <div>
-    <h4>project/plugins.sbt</h4>
-    <p>Add any plugins needed by your template.  For example, a Play template would require the Play sbt plugin addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.2.0")"</p>
+    <h2>Rolling the Flow</h2>
+    <p>
+        In the previous section we described how to define an actor as a Reactive Streams Publisher. To start streaming
+        we still need to instantiate the actor and - in one go - transform it into a Source. This is done in <a href="#code/src/main/scala/reactive/tweets/outgoing/TweetLivestreams.scala" class="shortcut">TweetLivestreams.scala</a>.
+
+        <pre><code>private val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](TweetsSourceActor.props)</code></pre>
+
+        Now we've got our hands on a proper Source we can use it to construct a Flow:
+
+        <pre><code>def tweetFlow(tweetFilter: TweetFilter): Flow[Message, Message, Unit] =
+            Flow.wrap(Sink.ignore, tweetSource filter tweetFilter map toMessage)(Keep.left)</code></pre>
+
+        Note: ignore the tweetFilter for now, this is just a convenience parameter to be able to construct specific streams,
+        like the stream of tweets for a specific user, or the stream of tweets that contain a specific hash tag.
+    </p>
+    <p>
+        The part where we construct the flow may feel a bit unintuitive so we'll spend some extra words on it. Your first
+        idea might have been to define some sort of bidirectional flow (e.g. <code>BidiFlow</code>). However this would not
+        be the correct approach. Contrary to HTTP, Websockets do not have the notion of Request -> Response. You can implement
+        Request -> Response but unlike HTTP it is not mandatory. Basically a Websocket lets you send messages and receive
+        messages, but these messages are not required to have any relation with each other.
+    </p>
+
+    <p>
+        We are only interested in one way communication with our Websocket. We push new tweets to the client on their
+        arrival. Theoretically we could also receive messages over the same channel from the client. We just ignore those.
+        So what does this look like in terms of a flow?
+    </p>
+
+    <pre>
+        +-----------------------------+
+        | Our Websocket Flow          |
+        |                             |
+        |  +--------+      +------+   |
+        |   \       |      |       \  |
+    In ~~>   | SINK |      | SOURCE |~~> Out
+        |   /       |      |       /  |
+        |  +--------+      +------+   |
+        +-----------------------------+
+    </pre>
+
+    <p>
+        The important thing to note is that the inner parts of the FLow (the Sink and the Source) have no connection
+        with each other. Incoming messages from the Websocket are ignored by routing them to the Ignore Sink
+        while on the other hand the outgoing channel will be serviced by our transformed actor that is listening to the
+        event bus:
+
+        <pre><code>Flow.wrap(Sink.ignore, tweetSource filter tweetFilter map toMessage)(Keep.left)</code></pre>
+    </p>
+</div>
+
+<div>
+    <h2>Finalizing the round trip: exposing the websocket through Akka Http</h2>
+        <p>
+
+        </p>
 </div>
 <div>
-    <h4>tutorial/index.html</h4>
-    <p>AKA the file you're currently reading.  Provide step-by-step information on how to use and modify the application generated by your template.</p>
-</div>
-<div>
-    <h4>activator.properties</h4>
-    <p>This file is used to name and describe your template.</p>
-</div>
-<div>
-    <h4>build.sbt</h4>
-    <p>The template build file.  Specify the name of your template here, along with the version and any dependencies it has.</p>
-</div>
-<div>
-    <h4>LICENSE</h4>
-    <p>Define the license for your template here.  If you want to use Markdown, rename this file to LICENSE.md</p>
-</div>
-<div>
-    <h4>README.md</h4>
-    <p>Provide general and detailed information on your template.</p>
-</div>
+    <h2>Summary</h2>
+    <p>
+
+    </p>
 </div>
 </body>
 </html>
