@@ -13,7 +13,7 @@ $(document).ready(function() {
 
     if (user) {
         $.ajax({
-            url: "http://localhost:8080" + latestTweetsPath
+            url: "http://localhost:8080/resources/tweets" + latestTweetsPath
         }).then(function (tweets) {
             tweets.reverse().forEach(function(tweet) {
                appendTweet(tweet);
@@ -28,7 +28,7 @@ $(document).ready(function() {
         };
 
         $.ajax({
-            url: 'http://localhost:8080',
+            url: 'http://localhost:8080/resources/tweets',
             method: 'POST',
             contentType: "application/json",
             data: JSON.stringify(json)
@@ -50,7 +50,7 @@ $(document).ready(function() {
     }
 });
 
-var socket = new WebSocket("ws://127.0.0.1:8080/all");
+var socket = new WebSocket("ws://localhost:8080/ws/tweets/all");
 
 socket.onmessage = function (msg) {
     var tweet = JSON.parse(msg.data);

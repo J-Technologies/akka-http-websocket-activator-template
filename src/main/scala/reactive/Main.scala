@@ -39,21 +39,21 @@ object Main extends App with TweetSource {
       }
     }
 
-    def websocketTweetsOfUser = (pathPrefix("users") & path(Segment)) { userName =>
+    def tweetsOfUserSocket = (pathPrefix("users") & path(Segment)) { userName =>
       handleWebsocketMessages(tweetFlowOfUser(userName))
     }
 
-    def websocketAllTweets = path("all") {
+    def allTweetsSocket = path("all") {
       handleWebsocketMessages(tweetFlowOfAll)
     }
 
-    def websocketTweetsWithHashtag = {
+    def tweetsWithHashTagSocket = {
       (pathPrefix("hashtag") & path(Segment)) { hashTag =>
         handleWebsocketMessages(tweetFlowOfHashTag(hashTag))
       }
     }
 
-    def postTweet = {
+    def addTweet = {
       entity(as[Tweet]) { tweet =>
         complete {
           (system.actorOf(TweetPublisherActorManager.props) ? tweet).map(_ => StatusCodes.NoContent)
@@ -68,16 +68,31 @@ object Main extends App with TweetSource {
     def img = (pathPrefix("img") & path(Segment)) { resource => getFromResource(s"img/$resource") }
     def js = (pathPrefix("js") & path(Segment)) { resource => getFromResource(s"js/$resource") }
 
-    get {
-      index ~ css ~ fonts ~ img ~ js ~
-        getLatestTweetsOfUser ~
-        websocketAllTweets ~
-        websocketTweetsWithHashtag ~
-        websocketTweetsOfUser
-    } ~ post {
-      postTweet
-    }
-  }
 
+    get {
+      index ~ css ~ fonts ~ img ~ js
+    } ~
+      // REST endpoints
+      pathPrefix("resources") {
+        pathPrefix("tweets") {
+          get {
+            getLatestTweetsOfUser
+          } ~
+            post {
+              addTweet
+            }
+        }
+      } ~
+      // Websocket endpoints
+      pathPrefix("ws") {
+        pathPrefix("tweets") {
+          get {
+            allTweetsSocket ~
+              tweetsWithHashTagSocket ~
+              tweetsOfUserSocket
+          }
+        }
+      }
+  }
 
 }

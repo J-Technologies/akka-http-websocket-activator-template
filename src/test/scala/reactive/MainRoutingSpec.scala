@@ -19,19 +19,19 @@ class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest wit
   implicit val timeout = Timeout(1000 millis)
 
   "Main" should "allow to post a tweet for a user" in {
-    Post("/", Tweet(User("Test"), "Some tweet")) ~> Main.mainFlow ~> check {
+    Post("/resources/tweets", Tweet(User("Test"), "Some tweet")) ~> Main.mainFlow ~> check {
       status shouldBe NoContent
     }
   }
 
   it should "handle websocket requests for tweets" in {
-    Get("/all") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
+    Get("/ws/tweets/all") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
       status shouldEqual StatusCodes.SwitchingProtocols
     }
   }
   
   it should "handle websocket requests for hashtags" in {
-    Get("/hashtag/test") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
+    Get("/ws/tweets/hashtag/test") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
       status shouldEqual StatusCodes.SwitchingProtocols
     }
   }
