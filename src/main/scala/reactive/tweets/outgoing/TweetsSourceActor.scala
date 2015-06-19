@@ -13,6 +13,7 @@ class TweetsSourceActor extends ActorPublisher[Tweet] {
   override def receive = {
     case tweet: Tweet => onNext(tweet)
   }
+
 }
 
 object TweetsSourceActor {

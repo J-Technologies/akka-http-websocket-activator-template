@@ -54,15 +54,19 @@ object Main extends App with TweetSource {
     }
 
     def addTweet = {
-      entity(as[Tweet]) { tweet =>
-        complete {
-          (system.actorOf(TweetPublisherActorManager.props) ? tweet).map(_ => StatusCodes.NoContent)
+      post {
+        entity(as[Tweet]) { tweet =>
+          complete {
+            (system.actorOf(TweetPublisherActorManager.props) ? tweet).map(_ => StatusCodes.NoContent)
+          }
         }
       }
     }
 
     // Frontend
-    def index = (path("") | pathPrefix("index.htm")) { getFromResource("index.html") }
+    def index = (path("") | pathPrefix("index.htm")) {
+      getFromResource("index.html")
+    }
     def css = (pathPrefix("css") & path(Segment)) { resource => getFromResource(s"css/$resource") }
     def fonts = (pathPrefix("fonts") & path(Segment)) { resource => getFromResource(s"fonts/$resource") }
     def img = (pathPrefix("img") & path(Segment)) { resource => getFromResource(s"img/$resource") }
@@ -78,9 +82,7 @@ object Main extends App with TweetSource {
           get {
             getLatestTweetsOfUser
           } ~
-            post {
-              addTweet
-            }
+            addTweet
         }
       } ~
       // Websocket endpoints
