@@ -6,8 +6,8 @@ import akka.stream.scaladsl._
 import reactive.tweets.domain.Tweet
 import reactive.tweets.marshalling.TweetJsonProtocol
 
-trait TweetSource extends TweetJsonProtocol {
-  private val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](TweetsSourceActor.props)
+trait TweetFlow extends TweetJsonProtocol {
+  private val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](TweetPublisher.props)
   type TweetFilter = Tweet => Boolean
   
   def tweetFlow(tweetFilter: TweetFilter): Flow[Message, Message, Unit] =

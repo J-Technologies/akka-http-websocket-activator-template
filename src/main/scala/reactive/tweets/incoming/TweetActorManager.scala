@@ -2,9 +2,9 @@ package reactive.tweets.incoming
 
 import akka.actor.{Actor, Props}
 import reactive.tweets.domain.{Tweet, User}
-import reactive.tweets.incoming.TweetPublisherActor.GetLastTen
+import reactive.tweets.incoming.TweetActor.GetLastTen
 
-class TweetPublisherActorManager extends Actor {
+class TweetActorManager extends Actor {
 
   override def receive = {
     case tweet: Tweet => forward(tweet, tweet.user.name)
@@ -15,11 +15,11 @@ class TweetPublisherActorManager extends Actor {
   }
 
   def forward(message: Any, userName: String) = {
-    val tweetPublisherActor = context.child(userName).getOrElse(context.actorOf(TweetPublisherActor.props(User(userName)), userName))
+    val tweetPublisherActor = context.child(userName).getOrElse(context.actorOf(TweetActor.props(User(userName)), userName))
     tweetPublisherActor forward message
   }
 }
 
-object TweetPublisherActorManager {
-  def props: Props = Props[TweetPublisherActorManager]
+object TweetActorManager {
+  def props: Props = Props[TweetActorManager]
 }

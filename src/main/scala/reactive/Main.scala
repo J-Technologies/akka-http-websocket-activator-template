@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.marshalling.ToResponseMarshallable.apply
 import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.server.Directive.{ addByNameNullaryApply, addDirectiveApply }
+import akka.http.scaladsl.server.Directive.{addByNameNullaryApply, addDirectiveApply}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.PathMatcher.segmentStringToPathMatcher
 import akka.http.scaladsl.server.PathMatchers.Segment
@@ -13,16 +13,16 @@ import akka.http.scaladsl.server.RouteResult.route2HandlerFlow
 import akka.pattern.ask
 import akka.stream.ActorFlowMaterializer
 import akka.util.Timeout
-import reactive.tweets.domain.{ Tweet, User }
-import reactive.tweets.incoming.TweetPublisherActor.{ GetLastTen, LastTenResponse }
-import reactive.tweets.incoming.TweetPublisherActorManager
-import reactive.tweets.outgoing.TweetSource
+import reactive.tweets.domain.{Tweet, User}
+import reactive.tweets.incoming.TweetActor.{GetLastTen, LastTenResponse}
+import reactive.tweets.incoming.TweetActorManager
+import reactive.tweets.outgoing.TweetFlow
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
 
-object Main extends App with TweetSource {
+object Main extends App with TweetFlow {
   implicit val system = ActorSystem("webapi")
   implicit val executor = system.dispatcher
   implicit val timeout = Timeout(1000 millis)
@@ -33,7 +33,7 @@ object Main extends App with TweetSource {
   def mainFlow(implicit system: ActorSystem, timeout: Timeout, executor: ExecutionContext): Route = {
     def getLatestTweetsOfUser = (pathPrefix("users") & path(Segment)) { userName =>
       complete {
-        (system.actorOf(TweetPublisherActorManager.props) ? GetLastTen(User(userName)))
+        (system.actorOf(TweetActorManager.props) ? GetLastTen(User(userName)))
           .mapTo[LastTenResponse]
           .map(_.lastTen)
       }
@@ -55,7 +55,7 @@ object Main extends App with TweetSource {
       post {
         entity(as[Tweet]) { tweet =>
           complete {
-            (system.actorOf(TweetPublisherActorManager.props) ? tweet).map(_ => StatusCodes.NoContent)
+            (system.actorOf(TweetActorManager.props) ? tweet).map(_ => StatusCodes.NoContent)
           }
         }
       }

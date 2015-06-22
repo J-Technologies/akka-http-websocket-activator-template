@@ -3,17 +3,17 @@ package reactive.tweets.incoming
 import akka.actor.{Props, Status, actorRef2Scala}
 import akka.persistence.{PersistentActor, SnapshotOffer}
 import reactive.tweets.domain.{Tweet, User}
-import reactive.tweets.incoming.TweetPublisherActor.{GetLastTen, LastTenResponse}
+import reactive.tweets.incoming.TweetActor.{GetLastTen, LastTenResponse}
 import akka.persistence.SaveSnapshotSuccess
 
-object TweetPublisherActor {
-  def props(user: User): Props = Props(new TweetPublisherActor(user))
+object TweetActor {
+  def props(user: User): Props = Props(new TweetActor(user))
 
   case class GetLastTen(user: User)
   case class LastTenResponse(lastTen: List[Tweet])
 }
 
-class TweetPublisherActor(val user: User) extends PersistentActor {
+class TweetActor(val user: User) extends PersistentActor {
   override def persistenceId = user.name
   var latestTweets = List[Tweet]()
 

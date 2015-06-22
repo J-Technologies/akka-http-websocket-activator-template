@@ -4,7 +4,7 @@ import akka.actor._
 import akka.stream.actor.ActorPublisher
 import reactive.tweets.domain.Tweet
 
-class TweetsSourceActor extends ActorPublisher[Tweet] {
+class TweetPublisher extends ActorPublisher[Tweet] {
 
   override def preStart = {
     context.system.eventStream.subscribe(self, classOf[Tweet])
@@ -16,7 +16,7 @@ class TweetsSourceActor extends ActorPublisher[Tweet] {
 
 }
 
-object TweetsSourceActor {
-  def props: Props = Props(new TweetsSourceActor())
+object TweetPublisher {
+  def props: Props = Props(new TweetPublisher())
 }
 

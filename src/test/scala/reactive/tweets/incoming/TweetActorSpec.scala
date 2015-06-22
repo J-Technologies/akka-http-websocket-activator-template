@@ -5,29 +5,29 @@ import reactive.ActorTestUtils
 import reactive.tweets.domain.{ Tweet, User }
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
-import reactive.tweets.incoming.TweetPublisherActor.GetLastTen
-import reactive.tweets.incoming.TweetPublisherActor.LastTenResponse
+import reactive.tweets.incoming.TweetActor.GetLastTen
+import reactive.tweets.incoming.TweetActor.LastTenResponse
 
-class TweetPublisherActorSpec extends ActorTestUtils {
+class TweetActorSpec extends ActorTestUtils {
 
-  def tweetPublisherActorManager = system.actorOf(TweetPublisherActorManager.props)
+  def tweetActorManager = system.actorOf(TweetActorManager.props)
 
   val tweet = Tweet(User("test"), "Hello World!")
   val tweetLatest = Tweet(User("test"), "Hello World! again")
 
-  "A Timeline Actor Manager " should "persist the tweet successfully" in {
+  "The actor manager" should "forward the tweet to the persistent actor" in {
     within(500 millis) {
-      tweetPublisherActorManager ! tweet
+      tweetActorManager ! tweet
       expectMsg(Status.Success)
       expectNoMsg()
     }
   }
 
-  "A Timeline Actor " should "broadcast a successfully saved tweet" in {
+  "The persistent actor" should "broadcast a successfully saved tweet" in {
     within(500 millis) {
       system.eventStream.subscribe(testActor, classOf[Tweet])
 
-      tweetPublisherActorManager ! tweet
+      tweetActorManager ! tweet
       expectMsg(Status.Success)
       expectMsg(tweet)
       expectNoMsg()
@@ -39,9 +39,9 @@ class TweetPublisherActorSpec extends ActorTestUtils {
   it should "save the latest tweets" in {
     within(500 millis) {
 
-      tweetPublisherActorManager ! tweetLatest
+      tweetActorManager ! tweetLatest
       expectMsg(Status.Success)
-      tweetPublisherActorManager ! GetLastTen(tweet.user)
+      tweetActorManager ! GetLastTen(tweet.user)
 
       expectMsg(LastTenResponse(List(tweetLatest, tweet, tweet)))
     }
@@ -51,11 +51,11 @@ class TweetPublisherActorSpec extends ActorTestUtils {
     within(500 millis) {
 
       for (i <- 1 to 100) yield {
-        tweetPublisherActorManager ! tweetLatest
+        tweetActorManager ! tweetLatest
         expectMsg(Status.Success)
       }
 
-      tweetPublisherActorManager ! GetLastTen(tweet.user)
+      tweetActorManager ! GetLastTen(tweet.user)
 
       expectMsg(LastTenResponse((1 to 10).map(_ => tweetLatest).toList))
     }
@@ -64,9 +64,9 @@ class TweetPublisherActorSpec extends ActorTestUtils {
   it should "recover with the latest messages" in {
     within(500 millis) {
 
-      val user = system.actorOf(TweetPublisherActor.props(tweet.user))
+      val user = system.actorOf(TweetActor.props(tweet.user))
       system.stop(user)
-      tweetPublisherActorManager ! GetLastTen(tweet.user)
+      tweetActorManager ! GetLastTen(tweet.user)
 
       expectMsg(LastTenResponse((1 to 10).map(_ => tweetLatest).toList))
     }

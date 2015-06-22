@@ -9,7 +9,7 @@ import reactive.tweets.domain.{Tweet, User}
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
 
-class TweetFlowSpec extends ActorTestUtils with TweetSource {
+class TweetFlowSpec extends ActorTestUtils with TweetFlow {
   implicit val materializer = ActorFlowMaterializer()
   private val noMessageTimeout = 100 millis
 
