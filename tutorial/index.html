@@ -261,26 +261,151 @@
     It's time to get your hands dirty. Tweets for a user are nice to have, but having a different channel to only follow
     tweets with a certain hash tag would be even nicer, don't you agree?</p>
     <p>
-    In this second part we will create, step by step and test first, this feature for the application. Each step will
-    have a failing test and an unimplemented method to help you along the way.
+    In this second part we will create this feature step by step. Each step will have a failing test and an unimplemented
+    method to help you on the way.
     </p>
     <img src="tutorial/img/ready-set-go.jpg" alt="Go!">
     <p>
-        Next: <a href="#tutorial/8" class="shortcut">Creating a New Source</a>
+        Next: <a href="#tutorial/8" class="shortcut">Creating a New Flow</a>
     </p>
 </div>
 <div>
-    <h2>Part 2: Creating a New Source</h2>
-
-    <p>We need a source of all tweets with a certain hash tag</p>
-
-
-</div>
-<div>
-    <h2>Summary</h2>
+    <h2>Part 2: Creating a New Flow</h2>
 
     <p>
+        Before we can expose a stream of filtered tweets on hash tag to the outside world, we'll first need something to
+        actually expose. This basically comes down to the fact that we need an extra flow, besides the flow for all tweets
+        and the flow for tweets of a user. Let's start by looking at the failing tests in <a
+            href="#code/src/test/scala/reactive/tweets/outgoing/TweetFlowSpec.scala" class="shortcut">TweetFlowSpec.scala</a>.
+    </p>
+<pre><code>"The flow for tweets with hash tag" should "only forward tweets with matching hash tag" in {
+  val hashTag = "shouldMatch"
+  val sut = tweetFlowOfHashTag(hashTag).runWith(TestSource.probe[Message], TestSink.probe[Message])
+  val (_, mockSink) = sut
 
+  val tweet = Tweet(User("test"), s"Hello World! #${hashTag}")
+  system.eventStream.publish(tweet)
+
+  mockSink.request(1)
+  mockSink.expectNext()
+  mockSink.expectNoMsg(noMessageTimeout)
+}</code></pre>
+    <p>
+        We mock out the <code>Source</code> and <code>Sink</code> to be able to control the input and output for a flow,
+        which makes testing a lot easier. We expect, given a flow that filters on hash tag X and putting a tweet on the
+        event bus with that same tag X, that we will actually receive that tweet in our mock sink. Because we only put
+        one tweet on the bus, we expect no more message after our first request.
+    </p>
+    <p>
+        There is another test to test the opposite scenario (putting a tweet on the bus with a non matching tag and
+        expecting not to see it arrive), but we'll not discuss since it is analogous to the test described above. Open
+        <a href="#code/src/main/scala/reactive/tweets/outgoing/TweetFlow.scala" class="shortcut">TweetFlow.scala</a> and
+        add an implementation on the spot marked with <code>???</code>. Of course your implementation should satisfy both
+        failing tests in <a
+            href="#code/src/test/scala/reactive/tweets/outgoing/TweetFlowSpec.scala" class="shortcut">TweetFlowSpec.scala</a>.
+    </p>
+    <p>
+        Next: <a href="#tutorial/9" class="shortcut">The Solution for this challenge (spoiler alert!)</a>
+    </p>
+</div>
+<div>
+    <h2>Part 2: Solution New Flow</h2>
+    <p>Drumroll...</p>
+    <code>def tweetFlowOfHashTag(hashTag: String) = tweetFlow(_.text contains hashTag)</code>
+    <p>
+        Your method should look something like this. Yes, it was that easy. Sorry.<br/><br/>
+        Note that the return type information can be omitted now. It was needed to make the tests compile. If you change
+        the implementation back to <code>???</code> and remove the return type information, you should see compile errors
+        in <a
+            href="#code/src/test/scala/reactive/tweets/outgoing/TweetFlowSpec.scala" class="shortcut">TweetFlowSpec.scala</a>.
+        Feel free to try it out.
+    </p>
+    <p>
+        Now we have a <code>Flow</code> we can expose it via a new Websocket route.
+    </p>
+    <p>
+        Next: <a href="#tutorial/10" class="shortcut">Hash Tag Websocket</a>
+    </p>
+</div>
+<div>
+    <h2>Part 2: Hash Tag Websocket</h2>
+    <p>Let's take a look at the failing test in  <a
+            href="#code/src/test/scala/reactive/tweets/MainRoutingSpec.scala" class="shortcut">MainRoutingSpec.scala</a> first.</p>
+<pre><code>it should "handle websocket requests for hash tags" in {
+  Get("/ws/tweets/hashtag/test") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
+    status shouldEqual SwitchingProtocols
+  }
+}
+</code></pre>
+    <p>
+        The test should make clear on which path it expects the stream to be exposed. You can implement the functionality in
+        <a href="#code/src/main/scala/reactive/tweets/Main.scala" class="shortcut">Main.scala</a>. Look for the <code>???</code>
+        and comments with <code>TODO</code>.
+    </p>
+    <p>
+        Next: <a href="#tutorial/11" class="shortcut">The Solution for this challenge (spoiler alert!)</a>
+    </p>
+</div>
+<div>
+    <h2>Part 2: Solution Websocket</h2>
+<pre><code>def tweetsWithHashTagSocket = (pathPrefix("hashtag") & path(Segment)) { hashTag =>
+  handleWebsocketMessages(tweetFlowOfHashTag(hashTag))
+}
+</code></pre>
+    <p>We can then use this method in our main routing declaration:</p>
+<pre><code>// Websocket endpoints
+pathPrefix("ws") {
+  pathPrefix("tweets") {
+    get {
+      allTweetsSocket ~
+      tweetsOfUserSocket ~
+      tweetsWithHashTagSocket
+    }
+  }
+}
+</code></pre>
+    <p>
+        Et voila! We just extended our application with a nice flow to monitor tweet streams for certain hash tags. And
+        all that with only a few lines of extra code. <a href="#run/system">Run</a> the application and enjoy the fruits
+        of your hard labour.
+    </p>
+    <p>
+        Next: <a href="#tutorial/12" class="shortcut">Time to wrap it all up</a>
+    </p>
+</div>
+<div>
+    <h2>Conclusion</h2>
+    <p>
+        In this Activator template we explored the following techniques:
+        <strong>
+            <ul>
+                <li>Akka Http</li>
+                <li>Akka Persistence</li>
+                <li>Reactive Streams</li>
+                <li>Websockets</li>
+            </ul>
+        </strong>
+
+        We hope you enjoyed this tutorial. Feedback and suggestions are always appreciated.<br/>
+        So if you want to get in touch
+        contact us @ <a href="https://github.com/J-Technologies/akka-http-websocket-activator-template" class="shortcut">Github</a>.
+    </p>
+    <p>
+        Next: <a href="#tutorial/13" class="shortcut">Not tired yet?</a>
+    </p>
+</div>
+<div>
+    <h2>Further Explorations</h2>
+    <p>
+        So, still not tired? Try implementing some (or all) of the following functionality:
+        <strong>
+            <ul>
+                <li>Exposing a combined stream of tweets for a user with a certain hash tag</li>
+                <li>Distribute the application using Akka Cluster</li>
+                <li>Perform real time analytics with Spark</li>
+                <li>[Insert your own creative insight here]</li>
+            </ul>
+        </strong>
     </p>
 </div>
 </body>
