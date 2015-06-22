@@ -26,7 +26,7 @@ class TweetFlowSpec extends ActorTestUtils with TweetFlow {
   it should "forward all tweets published to the event stream" in {
     val sut = tweetFlowOfAll.runWith(TestSource.probe[Message], TestSink.probe[Message])
     val (_, mockSink) = sut
-    
+
     val tweet = Tweet(User("test"), "Hello World!")
     system.eventStream.publish(tweet)
 
@@ -48,8 +48,8 @@ class TweetFlowSpec extends ActorTestUtils with TweetFlow {
     mockSink.expectNoMsg(noMessageTimeout)
   }
 
-  it should " not forward tweets form users with a diffirent name" in {
-    val sut = tweetFlowOfUser("diffirent").runWith(TestSource.probe[Message], TestSink.probe[Message])
+  it should " not forward tweets form users with a different name" in {
+    val sut = tweetFlowOfUser("different").runWith(TestSource.probe[Message], TestSink.probe[Message])
     val (_, mockSink) = sut
 
     val tweet = Tweet(User("test"), "Hello World!")
@@ -58,29 +58,32 @@ class TweetFlowSpec extends ActorTestUtils with TweetFlow {
     mockSink.request(1)
     mockSink.expectNoMsg(noMessageTimeout)
   }
-  
+
+  /**
+   * TODO Implement production code
+   */
   "The flow for tweets with hash tag" should "only forward tweets with matching hash tag" in {
-	  val hashTag = "test-ok"
-			  val sut = tweetFlowOfHashTag(hashTag).runWith(TestSource.probe[Message], TestSink.probe[Message])
-			  val (_, mockSink) = sut
-			  
-			  val tweet = Tweet(User("test"), s"Hello World! #${hashTag}")
-			  system.eventStream.publish(tweet)
-			  
-			  mockSink.request(1)
-			  mockSink.expectNext()
-			  mockSink.expectNoMsg(noMessageTimeout)
+    val hashTag = "shouldMatch"
+    val sut = tweetFlowOfHashTag(hashTag).runWith(TestSource.probe[Message], TestSink.probe[Message])
+    val (_, mockSink) = sut
+
+    val tweet = Tweet(User("test"), s"Hello World! #${hashTag}")
+    system.eventStream.publish(tweet)
+
+    mockSink.request(1)
+    mockSink.expectNext()
+    mockSink.expectNoMsg(noMessageTimeout)
   }
-  
-  it should " not forward tweets without matching hash tag" in {
-	  val sut = tweetFlowOfHashTag("test-ok").runWith(TestSource.probe[Message], TestSink.probe[Message])
-			  val (_, mockSink) = sut
-			  
-			  val tweet = Tweet(User("test"), "Hello World! #otherhashtag")
-			  system.eventStream.publish(tweet)
-			  
-			  mockSink.request(1)
-			  mockSink.expectNoMsg(noMessageTimeout)
+
+  it should "not forward tweets without matching hash tag" in {
+    val sut = tweetFlowOfHashTag("shouldNotMatch").runWith(TestSource.probe[Message], TestSink.probe[Message])
+    val (_, mockSink) = sut
+
+    val tweet = Tweet(User("test"), "Hello World! #otherhashtag")
+    system.eventStream.publish(tweet)
+
+    mockSink.request(1)
+    mockSink.expectNoMsg(noMessageTimeout)
   }
 
 }

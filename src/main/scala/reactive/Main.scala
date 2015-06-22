@@ -47,9 +47,8 @@ object Main extends App with TweetFlow {
       handleWebsocketMessages(tweetFlowOfAll)
     }
 
-    def tweetsWithHashTagSocket = (pathPrefix("hashtag") & path(Segment)) { hashTag =>
-      handleWebsocketMessages(tweetFlowOfHashTag(hashTag))
-    }
+    // TODO Add implementation (Part 2 of tutorial)
+    def tweetsWithHashTagSocket = ???
 
     def addTweet = {
       post {
@@ -87,8 +86,8 @@ object Main extends App with TweetFlow {
         pathPrefix("tweets") {
           get {
             allTweetsSocket ~
-              tweetsWithHashTagSocket ~
               tweetsOfUserSocket
+            // TODO Call hash tag functionality from here
           }
         }
       }

@@ -44,14 +44,17 @@ class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest wit
     }
   }
 
-  it should "handle websocket requests for hashtags" in {
-    Get("/ws/tweets/hashtag/test") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
+  it should "handle websocket requests for users" in {
+    Get("/ws/tweets/users/test") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
       status shouldEqual SwitchingProtocols
     }
   }
 
-  it should "handle websocket requests for users" in {
-    Get("/ws/tweets/users/test") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
+  /**
+   * TODO Implement production code
+   */
+  it should "handle websocket requests for hash tags" in {
+    Get("/ws/tweets/hashtag/test") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
       status shouldEqual SwitchingProtocols
     }
   }
