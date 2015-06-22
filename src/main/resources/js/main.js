@@ -33,30 +33,45 @@ $(document).ready(function() {
             contentType: "application/json",
             data: JSON.stringify(json)
         });
+        $("#post-tweet")[0].reset();
         event.preventDefault();
     });
 
-    function getUrlParameter(sParam) {
-        var sPageURL = window.location.search.substring(1);
-        var sURLVariables = sPageURL.split('&');
-        for (var i = 0; i < sURLVariables.length; i++)
-        {
-            var sParameterName = sURLVariables[i].split('=');
-            if (sParameterName[0] == sParam)
-            {
-                return sParameterName[1];
-            }
-        }
+    var socket = getWebsocket();
+
+    socket.onmessage = function (msg) {
+        var tweet = JSON.parse(msg.data);
+        appendTweet(tweet);
     }
 });
 
-var socket = new WebSocket("ws://localhost:8080/ws/tweets/all");
-
-socket.onmessage = function (msg) {
-    var tweet = JSON.parse(msg.data);
-    appendTweet(tweet);
-}
-
 function appendTweet(tweet) {
     $("#tweets li:first-child").after(tweetHtml.replace("__USERNAME__", tweet.user.name).replace("__TWEET__", tweet.text));
+}
+
+function getWebsocket() {
+    var path = "ws://localhost:8080/ws/tweets/";
+
+    if (getUrlParameter('user')) {
+        path += "users/" + getUrlParameter('user');
+    } else if (getUrlParameter('hashtag')) {
+        path += "hashtag/" + getUrlParameter('hashtag');
+    } else {
+        path += "all";
+    }
+
+    return new WebSocket(path);
+}
+
+function getUrlParameter(sParam) {
+    var sPageURL = window.location.search.substring(1);
+    var sURLVariables = sPageURL.split('&');
+    for (var i = 0; i < sURLVariables.length; i++)
+    {
+        var sParameterName = sURLVariables[i].split('=');
+        if (sParameterName[0] == sParam)
+        {
+            return sParameterName[1];
+        }
+    }
 }
