@@ -280,7 +280,7 @@
     </p>
 <pre><code>"The flow for tweets with hash tag" should "only forward tweets with matching hash tag" in {
   val hashTag = "shouldMatch"
-  val sut = tweetFlowOfHashTag(hashTag).runWith(TestSource.probe[Message], TestSink.probe[Message])
+  val sut = tweetFlowWithHashTag(hashTag).runWith(TestSource.probe[Message], TestSink.probe[Message])
   val (_, mockSink) = sut
 
   val tweet = Tweet(User("test"), s"Hello World! #${hashTag}")
@@ -311,7 +311,7 @@
 <div>
     <h2>Part 2: Solution New Flow</h2>
     <p>Drumroll...</p>
-    <code>def tweetFlowOfHashTag(hashTag: String) = tweetFlow(_.text contains hashTag)</code>
+    <code>def tweetFlowWithHashTag(hashTag: String) = tweetFlow(_.text contains hashTag)</code>
     <p>
         Your method should look something like this. Yes, it was that easy. Sorry.
     </p>
@@ -344,7 +344,7 @@
 <div>
     <h2>Part 2: Solution Websocket</h2>
 <pre><code>def tweetsWithHashTagSocket = (pathPrefix("hashtag") & path(Segment)) { hashTag =>
-  handleWebsocketMessages(tweetFlowOfHashTag(hashTag))
+  handleWebsocketMessages(tweetFlowWithHashTag(hashTag))
 }
 </code></pre>
     <p>We can then use this method in our main routing declaration:</p>

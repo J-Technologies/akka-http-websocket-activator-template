@@ -17,5 +17,5 @@ trait TweetFlow extends TweetJsonProtocol {
 
   def tweetFlowOfAll = tweetFlow(_ => true)
 
-  def tweetFlowOfHashTag(hashTag: String): Flow[Message, Message, Unit] = ???
+  def tweetFlowWithHashTag(hashTag: String): Flow[Message, Message, Unit] = ???
 }

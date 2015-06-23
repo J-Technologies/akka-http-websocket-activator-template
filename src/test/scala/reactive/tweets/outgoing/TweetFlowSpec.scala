@@ -63,7 +63,7 @@ class TweetFlowSpec extends ActorTestUtils with TweetFlow {
    */
   "The flow for tweets with hash tag" should "only forward tweets with matching hash tag" in {
     val hashTag = "shouldMatch"
-    val sut = tweetFlowOfHashTag(hashTag).runWith(TestSource.probe[Message], TestSink.probe[Message])
+    val sut = tweetFlowWithHashTag(hashTag).runWith(TestSource.probe[Message], TestSink.probe[Message])
     val (_, mockSink) = sut
 
     val tweet = Tweet(User("test"), s"Hello World! #${hashTag}")
@@ -75,7 +75,7 @@ class TweetFlowSpec extends ActorTestUtils with TweetFlow {
   }
 
   it should "not forward tweets without matching hash tag" in {
-    val sut = tweetFlowOfHashTag("shouldNotMatch").runWith(TestSource.probe[Message], TestSink.probe[Message])
+    val sut = tweetFlowWithHashTag("shouldNotMatch").runWith(TestSource.probe[Message], TestSink.probe[Message])
     val (_, mockSink) = sut
 
     val tweet = Tweet(User("test"), "Hello World! #otherhashtag")
