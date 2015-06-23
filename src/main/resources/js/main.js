@@ -2,7 +2,7 @@ var tweetHtml =
     '<li> \
         <i class="fa fa-user bg-aqua"></i> \
         <div class="timeline-item"> \
-        <span class="time"><i class="fa fa-clock-o"></i>02 January</span> \
+        <span class="time"><i class="fa fa-clock-o"></i> Now</span> \
     <h3 class="timeline-header no-border"><a href="#">__USERNAME__</a>  __TWEET__</h3> \
     </div> \
     </li>';
