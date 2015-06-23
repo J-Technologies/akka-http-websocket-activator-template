@@ -325,7 +325,7 @@
 <div>
     <h2>Part 2: Hash Tag Websocket</h2>
     <p>Let's take a look at the failing test in  <a
-            href="#code/src/test/scala/reactive/tweets/MainRoutingSpec.scala" class="shortcut">MainRoutingSpec.scala</a> first.</p>
+            href="#code/src/test/scala/reactive/MainRoutingSpec.scala" class="shortcut">MainRoutingSpec.scala</a> first.</p>
 <pre><code>it should "handle websocket requests for hash tags" in {
   Get("/ws/tweets/hashtag/test") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
     status shouldEqual SwitchingProtocols
