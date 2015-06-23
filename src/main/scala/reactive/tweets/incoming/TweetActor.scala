@@ -22,6 +22,7 @@ class TweetActor(val user: User) extends PersistentActor {
       persist(tweet) { event =>
         sender ! Status.Success
         context.system.eventStream.publish(tweet)
+        addToLatest(tweet)
       }
 
     case GetLastTen(_) =>
