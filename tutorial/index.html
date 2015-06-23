@@ -1,0 +1,407 @@
+<html>
+<head>
+    <title>Akka HTTP to Persistent Actor to Akka Stream to Websocket</title>
+</head>
+<body>
+<div>
+    <h2>Getting started with this template</h2>
+
+    <p>
+        In this template you will learn some of the basics of
+        <strong>
+            <ul>
+                <li>Akka Http</li>
+                <li>Akka Persistence</li>
+                <li>Reactive Streams</li>
+                <li>Websockets</li>
+            </ul>
+        </strong>
+    </p>
+    <p>
+        This template consists of two parts, a theoretical and a hands-on part.
+        In the theoretical part you will learn about the techniques mentioned above by means of a fully working example.
+        In the hands-on part you will test-drive your own flow.
+        So don't mind the failing <a href="#test">tests</a> for now, you will fix them soon enough ;)
+    </p>
+    <p>
+        Next: <a href="#tutorial/1" class="shortcut">An Overview</a>
+    </p>
+</div>
+
+<div>
+    <h2>Part 1: An Overview</h2>
+
+    <p>
+        In this tutorial we will use a simple Twitter like application to demonstrate the different techniques. You can
+        post a tweet as a user and monitor a reactive timeline that changes whenever a new tweet is posted. We
+        simplified
+        the functionality a bit to keep the focus on the essentials.
+    </p>
+
+    <h3>Posting tweets</h3>
+
+    <p>
+        You can post tweets via a simple REST endpoint. A tweet consists of a username and the message. We use
+        <strong>Akka Persistence</strong> to keep track of the tweets for each user and be able to recover the
+        timeline for a user after a restart of the application. All incoming tweets are put on the event bus that comes
+        with <strong>Akka</strong>, after they are persisted.
+    </p>
+
+    <h3>Streaming tweets via Websockets</h3>
+
+    <p>
+        On the other side an actor is subscribed to the event bus. This means the actor will be notified every time a
+        new tweet is put on the event bus. Since <strong>Akka</strong> implements the <a
+            href="http://www.reactive-streams.org/announce-1.0.0">
+        Reactive Streams</a> SPI we can turn the actor into a <strong>Publisher</strong> which we can then turn into a
+        <strong>Source</strong> so we can use it in an <strong>Akka Http Flow</strong>.
+    </p>
+
+    <h3>The same story but now in a nice diagram</h3>
+    <img src="tutorial/img/flow.png" alt="The complete flow from posting a tweet to it being pushed on the websocket">
+    <caption>The complete flow from posting a tweet to it being pushed on the websocket</caption>
+    <p>
+        Next: <a href="#tutorial/2" class="shortcut">Posting a Tweet</a>
+    </p>
+</div>
+
+<div>
+    <h2>Part 1: Posting a Tweet</h2>
+
+    <p>
+        We start in <a href="#code/src/main/scala/reactive/Main.scala" class="shortcut">Main.scala</a> which defines the
+        routes. The route (in this case a REST endpoint) for posting a tweet is defined in the following method:
+
+<pre><code>def addTweet = {
+  post {
+    entity(as[Tweet]) { tweet =>
+      complete {
+        (system.actorOf(TweetActorManager.props) ? tweet).map(_ => StatusCodes.NoContent)
+      }
+    }
+  }
+}</code></pre>
+
+    The interesting part resides within the <code>complete</code> directive. There we create an actor (<a
+        href="#code/src/main/scala/reactive/tweets/incoming/TweetActorManager.scala"
+        class="shortcut">TweetActorManager</a>)
+    and send it the tweet. For simplicity we ignore failure and transform a successful completion to an appropriate
+    HTTP status code.
+    </p>
+    <p>
+        Next: <a href="#tutorial/3" class="shortcut">Using Akka Persistence</a>
+    </p>
+</div>
+
+<div>
+    <h2>Part 1: Using Akka Persistence</h2>
+
+    <h3>Forwarding tweets to persistent actors</h3>
+
+    <p>
+        All posted tweets end up at the <a href="#code/src/main/scala/reactive/tweets/incoming/TweetActorManager.scala"
+                                           class="shortcut">TweetActorManager</a>.
+        This actor forwards the tweet to a persistent actor based on the user that posted the tweet. Because we
+        want to keep track of the last tweets of a user we associate each user with a dedicated persistent actor.
+        The job of the <a href="#code/src/main/scala/reactive/tweets/incoming/TweetActorManager.scala" class="shortcut">TweetActorManager</a>
+        is to ensure the tweets end up at the correct persistent actor.
+    </p>
+
+    <h3>Persisting and recovering tweets</h3>
+
+    <p>
+        It is the job of the <a href="#code/src/main/scala/reactive/tweets/incoming/TweetActor.scala" class="shortcut">TweetActor</a>
+        to persist the tweet and put it on the event bus. It also knows how to recover the tweets for a user after a
+        system failure.
+
+<pre><code>case tweet: Tweet =>
+  persist(tweet) { event =>
+    sender() ! Status.Success
+    context.system.eventStream.publish(tweet)
+  }</code></pre>
+
+    After successful storage the callback is triggered. We send out a <code>Success</code> message and publish the tweet
+    on the event bus.
+    </p>
+    <p>
+        Next: <a href="#tutorial/4" class="shortcut">Reactive Streams</a>
+    </p>
+</div>
+
+<div>
+    <h2>Part 1: Reactive Streams</h2>
+
+    <p>
+        If we want to stream the tweets via websockets to our users we need to get them from somewhere. That place is
+        the
+        event bus. However, we need to perform some transformations before <strong>Akka Http</strong> is able to use the
+        bus as a source. The first step is hook up an actor to the event bus and expose that actor as a
+        <code>Publisher</code>.
+    </p>
+
+    <p>
+        The <a href="https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.0/README.md#specification">Reactive
+        Streams Specification</a> defines a Publisher as<br/>
+    </p>
+
+    <blockquote><em>a provider of a potentially unbounded number of sequenced elements, publishing them according to the
+        demand received from its Subscriber(s).</em></blockquote>
+
+    <p>
+        Akka implements the Reactive Streams SPI and fortunately the code to turn an actor into a Publisher is pretty
+        straightforward:
+        we just have to extend <code>ActorPublisher</code> which exposes (among others) the <code>onNext</code> which we
+        can use to push a new tweet to our subscribers when one arrives. Only thing left is to subscribe to the event
+        bus when the
+        actor is started. The code can be found in <a
+            href="#code/src/main/scala/reactive/tweets/outgoing/TweetPublisher.scala" class="shortcut">TweetPublisher.scala</a>
+        and should look like this:
+    </p>
+
+<pre><code>class TweetPublisher extends ActorPublisher[Tweet] {
+
+  override def preStart = {
+    context.system.eventStream.subscribe(self, classOf[Tweet])
+  }
+
+  override def receive = {
+    case tweet: Tweet => onNext(tweet)
+  }
+
+}</code></pre>
+
+    <p>
+        Next: <a href="#tutorial/5" class="shortcut">Running the Flow</a>
+    </p>
+</div>
+<div>
+    <h2>Part 1: Running the Flow</h2>
+
+    <p>
+        In the previous section we described how to define an actor as a Reactive Streams Publisher. To start streaming
+        we still need to instantiate the actor and - in one go - transform it into a Source. This is done in <a
+            href="#code/src/main/scala/reactive/tweets/outgoing/TweetFlow.scala" class="shortcut">TweetFlow.scala</a>.
+
+    <pre><code>private val tweetSource: Source[Tweet, ActorRef] =
+        Source.actorPublisher[Tweet](TweetPublisher.props)</code></pre>
+
+    Now we've got our hands on a proper <code>Source</code> we can use it to construct a <code>Flow</code>:
+
+        <pre><code>def tweetFlow(tweetFilter: TweetFilter): Flow[Message, Message, Unit] =
+            Flow.wrap(Sink.ignore, tweetSource filter tweetFilter map toMessage)(Keep.left)</code></pre>
+
+    Note: ignore the tweetFilter for now, this is just a convenience parameter to be able to construct specific streams,
+    like the stream of tweets for a specific user, or the stream of tweets that contain a specific hash tag.
+    </p>
+
+    <p>
+        We are only interested in one way communication with our Websocket. We push new tweets to the client on their
+        arrival. Theoretically we could also receive messages over the same channel from the client. We just ignore
+        those.
+        So what does this look like in terms of a Flow?
+    </p>
+
+    <pre>
+        +-----------------------------+
+        | Our Websocket Flow          |
+        |                             |
+        |  +--------+      +------+   |
+        |   \       |      |       \  |
+    In ~~>   | SINK |      | SOURCE |~~> Out
+        |   /       |      |       /  |
+        |  +--------+      +------+   |
+        +-----------------------------+
+    </pre>
+
+    <p>
+        The important thing to note is that the inner parts of the Flow (the Sink and the Source) have no connection
+        with each other. Incoming messages from the Websocket are ignored by routing them to the Ignore Sink
+        while on the other hand the outgoing channel will be serviced by our transformed actor that is listening to the
+        event bus:
+
+    <pre><code>Flow.wrap(Sink.ignore, tweetSource filter tweetFilter map toMessage)(Keep.left)</code></pre>
+    </p>
+    <p>
+        Next: <a href="#tutorial/6" class="shortcut">The Websocket</a>
+    </p>
+</div>
+
+<div>
+    <h2>Part 1: The Websocket</h2>
+
+    <p>
+        So we have a nice Flow, the next step is plugging it into Akka Http.<br/>
+        The most notable part is the <code>handleWebsocketMessages</code> directive, which comes out of the box with Akka Http.
+<pre><code>def tweetsOfUserSocket = (pathPrefix("users") & path(Segment)) { userName =>
+  handleWebsocketMessages(tweetFlowOfUser(userName))
+}</code></pre>
+
+    The part below describes the path at which the Websocket for this Flow can be found: <code>/ws/tweets/users/[userName]</code>.
+
+<pre><code>pathPrefix("ws") {
+  pathPrefix("tweets") {
+    get {
+      tweetsOfUserSocket
+    }
+  }
+}</code></pre>
+    Now we have explained all the pieces you can <a href="#run/system">run</a> the application and see everything in action.<br/>
+    </p>
+    <p>
+    In the next part you will extend the application with a flow containing only tweets with a certain hash tag.
+    </p>
+    <p>
+        Next: <a href="#tutorial/7" class="shortcut">Building your own Flow</a>
+    </p>
+</div>
+<div>
+    <h2>Part 2: Building your own Flow</h2>
+    <h3>Implementing a Websocket for tweets with a certain hash tag</h3>
+    <p>
+    It's time to get your hands dirty. Tweets for a user are nice to have, but having a different channel to only follow
+    tweets with a certain hash tag would be even nicer, don't you agree?</p>
+    <p>
+    In this second part we will create this feature step by step. Each step will have a failing test and an unimplemented
+    method to help you on the way.
+    </p>
+    <img src="tutorial/img/ready-set-go.jpg" alt="Go!">
+    <p>
+        Next: <a href="#tutorial/8" class="shortcut">Creating a New Flow</a>
+    </p>
+</div>
+<div>
+    <h2>Part 2: Creating a New Flow</h2>
+
+    <p>
+        Before we can expose a stream of filtered tweets on hash tag to the outside world, we'll first need something to
+        actually expose. This basically comes down to the fact that we need an extra flow, besides the flow for all tweets
+        and the flow for tweets of a user. Let's start by looking at the failing tests in <a
+            href="#code/src/test/scala/reactive/tweets/outgoing/TweetFlowSpec.scala" class="shortcut">TweetFlowSpec.scala</a>.
+    </p>
+<pre><code>"The flow for tweets with hash tag" should "only forward tweets with matching hash tag" in {
+  val hashTag = "shouldMatch"
+  val sut = tweetFlowOfHashTag(hashTag).runWith(TestSource.probe[Message], TestSink.probe[Message])
+  val (_, mockSink) = sut
+
+  val tweet = Tweet(User("test"), s"Hello World! #${hashTag}")
+  system.eventStream.publish(tweet)
+
+  mockSink.request(1)
+  mockSink.expectNext()
+  mockSink.expectNoMsg(noMessageTimeout)
+}</code></pre>
+    <p>
+        We mock out the <code>Source</code> and <code>Sink</code> to be able to control the input and output for a flow,
+        which makes testing a lot easier. We expect, given a flow that filters on hash tag X and putting a tweet on the
+        event bus with that same tag X, that we will actually receive that tweet in our mock sink. Because we only put
+        one tweet on the bus, we expect no more message after our first request.
+    </p>
+    <p>
+        There is another test to test the opposite scenario (putting a tweet on the bus with a non matching tag and
+        expecting not to see it arrive), but we'll not discuss since it is analogous to the test described above. Open
+        <a href="#code/src/main/scala/reactive/tweets/outgoing/TweetFlow.scala" class="shortcut">TweetFlow.scala</a> and
+        add an implementation on the spot marked with <code>???</code>. Of course your implementation should satisfy both
+        failing tests in <a
+            href="#code/src/test/scala/reactive/tweets/outgoing/TweetFlowSpec.scala" class="shortcut">TweetFlowSpec.scala</a>.
+    </p>
+    <p>
+        Next: <a href="#tutorial/9" class="shortcut">The Solution for this challenge (spoiler alert!)</a>
+    </p>
+</div>
+<div>
+    <h2>Part 2: Solution New Flow</h2>
+    <p>Drumroll...</p>
+    <code>def tweetFlowOfHashTag(hashTag: String) = tweetFlow(_.text contains hashTag)</code>
+    <p>
+        Your method should look something like this. Yes, it was that easy. Sorry.
+    </p>
+    <p>
+        Now we have a <code>Flow</code> we can expose it via a new Websocket route.
+    </p>
+    <p>
+        Next: <a href="#tutorial/10" class="shortcut">Hash Tag Websocket</a>
+    </p>
+</div>
+<div>
+    <h2>Part 2: Hash Tag Websocket</h2>
+    <p>Let's take a look at the failing test in  <a
+            href="#code/src/test/scala/reactive/tweets/MainRoutingSpec.scala" class="shortcut">MainRoutingSpec.scala</a> first.</p>
+<pre><code>it should "handle websocket requests for hash tags" in {
+  Get("/ws/tweets/hashtag/test") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
+    status shouldEqual SwitchingProtocols
+  }
+}
+</code></pre>
+    <p>
+        The test should make clear on which path it expects the stream to be exposed. You can implement the functionality in
+        <a href="#code/src/main/scala/reactive/tweets/Main.scala" class="shortcut">Main.scala</a>. Look for the <code>???</code>
+        and comments with <code>TODO</code>.
+    </p>
+    <p>
+        Next: <a href="#tutorial/11" class="shortcut">The Solution for this challenge (spoiler alert!)</a>
+    </p>
+</div>
+<div>
+    <h2>Part 2: Solution Websocket</h2>
+<pre><code>def tweetsWithHashTagSocket = (pathPrefix("hashtag") & path(Segment)) { hashTag =>
+  handleWebsocketMessages(tweetFlowOfHashTag(hashTag))
+}
+</code></pre>
+    <p>We can then use this method in our main routing declaration:</p>
+<pre><code>// Websocket endpoints
+pathPrefix("ws") {
+  pathPrefix("tweets") {
+    get {
+      allTweetsSocket ~
+      tweetsOfUserSocket ~
+      tweetsWithHashTagSocket
+    }
+  }
+}
+</code></pre>
+    <p>
+        Et voil&agrave;! We just extended our application with a nice flow to monitor tweet streams for certain hash tags. And
+        all that with only a few lines of extra code. <a href="#run/system">Run</a> the application and enjoy the fruits
+        of your hard labour.
+    </p>
+    <p>
+        Next: <a href="#tutorial/12" class="shortcut">Time to wrap it all up</a>
+    </p>
+</div>
+<div>
+    <h2>Conclusion</h2>
+    <p>
+        In this Activator template we explored the following techniques:
+        <strong>
+            <ul>
+                <li>Akka Http</li>
+                <li>Akka Persistence</li>
+                <li>Reactive Streams</li>
+                <li>Websockets</li>
+            </ul>
+        </strong>
+
+        We hope you enjoyed this tutorial. Feedback and suggestions are always appreciated.<br/>
+        So if you want to get in touch
+        contact us @ <a href="https://github.com/J-Technologies/akka-http-websocket-activator-template" class="shortcut">Github</a>.
+    </p>
+    <p>
+        Next: <a href="#tutorial/13" class="shortcut">Not tired yet?</a>
+    </p>
+</div>
+<div>
+    <h2>Further Explorations</h2>
+    <p>
+        So, still not tired? Try implementing some (or all) of the following functionality:
+        <strong>
+            <ul>
+                <li>Exposing a combined stream of tweets for a user with a certain hash tag</li>
+                <li>Distribute the application using Akka Cluster</li>
+                <li>Perform real time analytics with Spark</li>
+                <li>[Insert your own creative insight here]</li>
+            </ul>
+        </strong>
+    </p>
+</div>
+</body>
+</html>
