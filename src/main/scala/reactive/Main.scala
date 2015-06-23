@@ -28,9 +28,10 @@ object Main extends App with TweetFlow {
 
   implicit val materializer = ActorFlowMaterializer()
   val serverBinding = Http().bindAndHandle(interface = "0.0.0.0", port = 8080, handler = mainFlow)
-  val tweetActorManager = system.actorOf(TweetActorManager.props)
   
   def mainFlow(implicit system: ActorSystem, timeout: Timeout, executor: ExecutionContext): Route = {
+	  val tweetActorManager = system.actorOf(TweetActorManager.props)
+    
     def getLatestTweetsOfUser = (pathPrefix("users") & path(Segment)) { userName =>
       complete {
         (tweetActorManager ? GetLastTen(User(userName)))
