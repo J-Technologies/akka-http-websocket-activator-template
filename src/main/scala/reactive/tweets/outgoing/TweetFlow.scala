@@ -13,7 +13,7 @@ trait TweetFlow extends TweetJsonProtocol {
   def tweetFlow(tweetFilter: TweetFilter): Flow[Message, Message, Unit] =
     Flow.wrap(Sink.ignore, tweetSource filter tweetFilter map toMessage)(Keep.left)
 
-  def tweetFlowOfUser(userName: String) = tweetFlow(_.user.name == userName)
+  def tweetFlowOfUser(userName: String) = tweetFlow(_.user.name.equalsIgnoreCase(userName))
 
   def tweetFlowOfAll = tweetFlow(_ => true)
 
