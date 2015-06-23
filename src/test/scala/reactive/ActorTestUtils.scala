@@ -15,7 +15,8 @@ import akka.testkit.TestKit
 class ActorTestUtils extends TestKit(ActorTestUtils.actorSystem())
   with DefaultTimeout with ImplicitSender
   with FlatSpecLike with Matchers with BeforeAndAfterAll {
-  override protected def afterAll() = shutdown()
+  
+  override protected def afterAll = shutdown()
 
   def expectFailure[A <: Exception: ClassTag] = {
     expectMsgPF() {
@@ -27,4 +28,3 @@ class ActorTestUtils extends TestKit(ActorTestUtils.actorSystem())
 object ActorTestUtils {
   def actorSystem() = ActorSystem("TestKitActorSystem")
 }
-

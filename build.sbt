@@ -1,5 +1,5 @@
 name := "akka-http-websocket-activator-template"
-organization :=  "Ordina"
+organization := "Ordina"
 version := "1.0"
 scalaVersion := "2.11.6"
 

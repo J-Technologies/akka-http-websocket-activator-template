@@ -4,7 +4,6 @@ import akka.actor.Status
 import reactive.ActorTestUtils
 import reactive.tweets.domain.{ Tweet, User }
 import scala.concurrent.duration.DurationInt
-import scala.language.postfixOps
 import reactive.tweets.incoming.TweetActor.GetLastTen
 import reactive.tweets.incoming.TweetActor.LastTenResponse
 
@@ -16,7 +15,7 @@ class TweetActorSpec extends ActorTestUtils {
   val tweetLatest = Tweet(User("test"), "Hello World! again")
 
   "The actor manager" should "forward the tweet to the persistent actor" in {
-    within(500 millis) {
+    within(500.millis) {
       tweetActorManager ! tweet
       expectMsg(Status.Success)
       expectNoMsg()
@@ -24,7 +23,7 @@ class TweetActorSpec extends ActorTestUtils {
   }
 
   "The persistent actor" should "broadcast a successfully saved tweet" in {
-    within(500 millis) {
+    within(500.millis) {
       system.eventStream.subscribe(testActor, classOf[Tweet])
 
       tweetActorManager ! tweet
@@ -37,7 +36,7 @@ class TweetActorSpec extends ActorTestUtils {
   }
 
   it should "save the latest tweets" in {
-    within(500 millis) {
+    within(500.millis) {
 
       tweetActorManager ! tweetLatest
       expectMsg(Status.Success)
@@ -48,7 +47,7 @@ class TweetActorSpec extends ActorTestUtils {
   }
 
   it should "save only the latest ten tweets" in {
-    within(500 millis) {
+    within(500.millis) {
 
       for (i <- 1 to 100) yield {
         tweetActorManager ! tweetLatest
@@ -62,7 +61,7 @@ class TweetActorSpec extends ActorTestUtils {
   }
   
   it should "recover with the latest messages" in {
-    within(500 millis) {
+    within(500.millis) {
 
       val user = system.actorOf(TweetActor.props(tweet.user))
       system.stop(user)

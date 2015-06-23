@@ -20,20 +20,20 @@ import reactive.tweets.outgoing.TweetFlow
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationInt
-import scala.language.postfixOps
 
 object Main extends App with TweetFlow {
   implicit val system = ActorSystem("webapi")
   implicit val executor = system.dispatcher
-  implicit val timeout = Timeout(1000 millis)
+  implicit val timeout = Timeout(1000.millis)
 
   implicit val materializer = ActorFlowMaterializer()
   val serverBinding = Http().bindAndHandle(interface = "0.0.0.0", port = 8080, handler = mainFlow)
-
+  val tweetActorManager = system.actorOf(TweetActorManager.props)
+  
   def mainFlow(implicit system: ActorSystem, timeout: Timeout, executor: ExecutionContext): Route = {
     def getLatestTweetsOfUser = (pathPrefix("users") & path(Segment)) { userName =>
       complete {
-        (system.actorOf(TweetActorManager.props) ? GetLastTen(User(userName)))
+        (tweetActorManager ? GetLastTen(User(userName)))
           .mapTo[LastTenResponse]
           .map(_.lastTen)
       }
@@ -54,7 +54,7 @@ object Main extends App with TweetFlow {
       post {
         entity(as[Tweet]) { tweet =>
           complete {
-            (system.actorOf(TweetActorManager.props) ? tweet).map(_ => StatusCodes.NoContent)
+            (tweetActorManager ? tweet).map(_ => StatusCodes.NoContent)
           }
         }
       }
@@ -86,8 +86,8 @@ object Main extends App with TweetFlow {
         pathPrefix("tweets") {
           get {
             allTweetsSocket ~
-              tweetsOfUserSocket
-            // TODO Call hash tag functionality from here
+            tweetsOfUserSocket
+            // TODO Call hash tag functionality from here (Part 2 of tutorial)
           }
         }
       }

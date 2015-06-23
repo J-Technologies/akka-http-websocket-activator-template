@@ -14,16 +14,16 @@ import reactive.tweets.domain.{ Tweet, User }
 import reactive.tweets.marshalling.TweetJsonProtocol
 
 import scala.concurrent.duration.DurationInt
-import scala.language.postfixOps
 
 class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest with TweetJsonProtocol {
-  implicit val timeout = Timeout(1000 millis)
+  implicit val timeout = Timeout(1000.millis)
 
   "Main" should "serve the index page on /" in {
     Get("/") ~> Main.mainFlow ~> check {
       status shouldBe OK
     }
   }
+  
   it should "allow to post a tweet for a user" in {
     Post("/resources/tweets", Tweet(User("test"), "Some tweet")) ~> Main.mainFlow ~> check {
       status shouldBe NoContent
@@ -51,7 +51,7 @@ class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest wit
   }
 
   /**
-   * TODO Implement production code
+   * TODO Make this test succeed (Part 2 of tutorial)
    */
   it should "handle websocket requests for hash tags" in {
     Get("/ws/tweets/hashtag/test") ~> Upgrade(List(UpgradeProtocol("websocket"))) ~> emulateHttpCore ~> Main.mainFlow ~> check {
@@ -62,8 +62,8 @@ class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest wit
   /** Only checks for upgrade header and then adds UpgradeToWebsocket mock header */
   private def emulateHttpCore(req: HttpRequest): HttpRequest =
     req.header[Upgrade] match {
-      case Some(upgrade) if upgrade.hasWebsocket ⇒ req.copy(headers = req.headers :+ upgradeToWebsocketHeaderMock)
-      case _                                     ⇒ req
+      case Some(upgrade) if upgrade.hasWebsocket => req.copy(headers = req.headers :+ upgradeToWebsocketHeaderMock)
+      case _                                     => req
     }
 
   private def upgradeToWebsocketHeaderMock: UpgradeToWebsocket =

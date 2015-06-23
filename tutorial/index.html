@@ -7,7 +7,7 @@
     <h2>Getting started with this template</h2>
 
     <p>
-        In this template you will learn some basics of
+        In this template you will learn some of the basics of
         <strong>
             <ul>
                 <li>Akka Http</li>
@@ -44,7 +44,7 @@
         You can post tweets via a simple REST endpoint. A tweet consists of a username and the message. We use
         <strong>Akka Persistence</strong> to keep track of the tweets for each user and be able to recover the
         timeline for a user after a restart of the application. All incoming tweets are put on the event bus that comes
-        with <strong>Akka</strong> once they are persisted.
+        with <strong>Akka</strong>, after they are persisted.
     </p>
 
     <h3>Streaming tweets via Websockets</h3>
@@ -236,7 +236,7 @@
   handleWebsocketMessages(tweetFlowOfUser(userName))
 }</code></pre>
 
-    The part below describes the path at which the Websocket for this Flow can be found: <code>/ws/users/[userName]</code>.
+    The part below describes the path at which the Websocket for this Flow can be found: <code>/ws/tweets/users/[userName]</code>.
 
 <pre><code>pathPrefix("ws") {
   pathPrefix("tweets") {
@@ -313,12 +313,7 @@
     <p>Drumroll...</p>
     <code>def tweetFlowOfHashTag(hashTag: String) = tweetFlow(_.text contains hashTag)</code>
     <p>
-        Your method should look something like this. Yes, it was that easy. Sorry.<br/><br/>
-        Note that the return type information can be omitted now. It was needed to make the tests compile. If you change
-        the implementation back to <code>???</code> and remove the return type information, you should see compile errors
-        in <a
-            href="#code/src/test/scala/reactive/tweets/outgoing/TweetFlowSpec.scala" class="shortcut">TweetFlowSpec.scala</a>.
-        Feel free to try it out.
+        Your method should look something like this. Yes, it was that easy. Sorry.
     </p>
     <p>
         Now we have a <code>Flow</code> we can expose it via a new Websocket route.
@@ -365,7 +360,7 @@ pathPrefix("ws") {
 }
 </code></pre>
     <p>
-        Et voila! We just extended our application with a nice flow to monitor tweet streams for certain hash tags. And
+        Et voil&agrave;! We just extended our application with a nice flow to monitor tweet streams for certain hash tags. And
         all that with only a few lines of extra code. <a href="#run/system">Run</a> the application and enjoy the fruits
         of your hard labour.
     </p>

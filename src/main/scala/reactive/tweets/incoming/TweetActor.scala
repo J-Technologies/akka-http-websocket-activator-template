@@ -15,23 +15,22 @@ object TweetActor {
 
 class TweetActor(val user: User) extends PersistentActor {
   override def persistenceId = user.name
-  var latestTweets = List[Tweet]()
+  var latestTweets = List.empty[Tweet]
 
   override def receiveCommand = {
     case tweet: Tweet =>
       persist(tweet) { event =>
-        sender() ! Status.Success
+        sender ! Status.Success
         context.system.eventStream.publish(tweet)
       }
 
     case GetLastTen(_) =>
-      sender() ! LastTenResponse(latestTweets.take(10))
+      sender ! LastTenResponse(latestTweets.take(10))
 
-      
-    case s: SaveSnapshotSuccess => 
+    case _: SaveSnapshotSuccess => // Ignore
       
     case msg =>
-      throw new UnsupportedOperationException(s"received unexpected message $msg from ${sender()}")
+      throw new UnsupportedOperationException(s"received unexpected message $msg from ${sender}")
   }
 
   override def receiveRecover = {

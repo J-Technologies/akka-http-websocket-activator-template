@@ -10,7 +10,7 @@ trait TweetFlow extends TweetJsonProtocol {
   private val tweetSource: Source[Tweet, ActorRef] = Source.actorPublisher[Tweet](TweetPublisher.props)
   type TweetFilter = Tweet => Boolean
   
-  def tweetFlow(tweetFilter: TweetFilter): Flow[Message, Message, Unit] =
+  private def tweetFlow(tweetFilter: TweetFilter): Flow[Message, Message, Unit] =
     Flow.wrap(Sink.ignore, tweetSource filter tweetFilter map toMessage)(Keep.left)
 
   def tweetFlowOfUser(userName: String) = tweetFlow(_.user.name.equalsIgnoreCase(userName))

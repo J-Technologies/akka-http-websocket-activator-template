@@ -7,11 +7,10 @@ import reactive.ActorTestUtils
 import reactive.tweets.domain.{Tweet, User}
 
 import scala.concurrent.duration.DurationInt
-import scala.language.postfixOps
 
 class TweetFlowSpec extends ActorTestUtils with TweetFlow {
   implicit val materializer = ActorFlowMaterializer()
-  private val noMessageTimeout = 100 millis
+  private val noMessageTimeout = 100.millis
 
   "The flow for tweets" should "ignore incoming messages" in {
     val sut = tweetFlowOfAll.runWith(TestSource.probe[Message], TestSink.probe[Message])
@@ -60,7 +59,7 @@ class TweetFlowSpec extends ActorTestUtils with TweetFlow {
   }
 
   /**
-   * TODO Implement production code
+   * TODO Make this test succeed (Part 2 of tutorial)
    */
   "The flow for tweets with hash tag" should "only forward tweets with matching hash tag" in {
     val hashTag = "shouldMatch"
