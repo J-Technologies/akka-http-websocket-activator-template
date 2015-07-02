@@ -11,6 +11,8 @@ project/boot/
 .history
 .cache
 .sbtserver/
+project/.sbtserver
+project/.sbtserver.lock
 
 ### Intellij ###
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm
@@ -109,3 +111,6 @@ local.properties
 
 # TeXlipse plugin
 .texlipse
+
+# Akka Persistence
+journal/

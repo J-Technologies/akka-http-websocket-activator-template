@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Ordina Tweetstream</title>
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <!-- Fontawesome core CSS -->
+    <link href="css/font-awesome.min.css" rel="stylesheet"/>
+    <!--GOOGLE FONT -->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <!-- Timeline -->
+    <link href="css/timeline.css" rel="stylesheet"/>
+    <!-- custom CSS here -->
+    <link href="css/style.css" rel="stylesheet"/>
+</head>
+<body class="bg-orange">
+<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="http://www.ordina.com/">ORDINA </a>
+        </div>
+        <!-- Collect the nav links for toggling -->
+        <div class="collapse navbar-collapse navbar-ex1-collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="/">Home</a>
+                </li>
+                <li><a href="/">About</a>
+                </li>
+                <li><a href="/">Services</a>
+                </li>
+                <li><a href="/">Contact</a>
+                </li>
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container -->
+</nav>
+
+<div class="container top-margin">
+    <div class="row">
+        <div class="col-md-2">
+            <div class="sidebar">
+                <div class="mini-submenu">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </div>
+                <h3>Menu</h3>
+                <div class="list-group">
+                    <a href="/" class="list-group-item">
+                        <i class="fa fa-comment-o"></i> All
+                    </a>
+                    <a href="?user=joost" class="list-group-item">
+                        <i class="fa fa-comment-o"></i> Joost
+                    </a>
+                    <a href="?user=martijn" class="list-group-item">
+                        <i class="fa fa-comment-o"></i> Martijn
+                    </a>
+                    <a href="?hashtag=websockets" class="list-group-item">
+                        <i class="fa fa-search"></i> #websockets
+                    </a>
+                    <a href="?hashtag=fun" class="list-group-item">
+                        <i class="fa fa-search"></i> #fun
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-10">
+            <div class="row ">
+                <div class="col-md-8 col-sm-12">
+                    <form role="form" id="post-tweet">
+                        <div class="form-group">
+                            <label for="user">Username:</label>
+                            <input type="text" class="form-control" id="user">
+                        </div>
+                        <div class="form-group">
+                            <label for="tweet">Tweet:</label>
+                            <input type="text" class="form-control" id="tweet">
+                        </div>
+                        <button id="submit" type="submit" class="btn btn-default pull-right">Tweet!</button>
+                    </form>
+                </div>
+            </div>
+            <div class="row ">
+                <div class="col-md-8 col-sm-12">
+                    <div>
+                        <ul class="timeline" id="tweets">
+                            <li class="time-label">
+                            <span class="bg-green">Timeline
+                            </span>
+                                <br/>
+                                <br/>
+                            </li>
+                            <li>
+                                <i class="fa fa-user bg-aqua"></i>
+
+                                <div class="timeline-item">
+                                    <span class="time"><i class="fa fa-clock-o"></i> 23 June</span>
+
+                                    <h3 class="timeline-header no-border">
+                                    	<a href="#">Ordina.</a> Thanks for using this template. #welcome
+                                    </h3>
+                                </div>
+                            </li>
+                            <li>
+                                <i class="fa fa-clock-o"></i>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /.container -->
+
+<!--Core JavaScript file  -->
+<script src="js/jquery-1.10.2.js"></script>
+<!--bootstrap JavaScript file  -->
+<script src="js/bootstrap.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
