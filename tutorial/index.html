@@ -188,7 +188,7 @@
     Now we've got our hands on a proper <code>Source</code> we can use it to construct a <code>Flow</code>:
 
         <pre><code>def tweetFlow(tweetFilter: TweetFilter): Flow[Message, Message, Unit] =
-            Flow.wrap(Sink.ignore, tweetSource filter tweetFilter map toMessage)(Keep.left)</code></pre>
+            Flow.wrap(Sink.ignore, tweetSource filter tweetFilter map toMessage)(Keep.none)</code></pre>
 
     Note: ignore the tweetFilter for now, this is just a convenience parameter to be able to construct specific streams,
     like the stream of tweets for a specific user, or the stream of tweets that contain a specific hash tag.
@@ -219,7 +219,7 @@
         while on the other hand the outgoing channel will be serviced by our transformed actor that is listening to the
         event bus:
 
-    <pre><code>Flow.wrap(Sink.ignore, tweetSource filter tweetFilter map toMessage)(Keep.left)</code></pre>
+    <pre><code>Flow.wrap(Sink.ignore, tweetSource filter tweetFilter map toMessage)(Keep.none)</code></pre>
     </p>
     <p>
         Next: <a href="#tutorial/6" class="shortcut">The Websocket</a>
