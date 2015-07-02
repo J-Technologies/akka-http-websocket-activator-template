@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.ContentTypes.`application/json`
 import akka.http.scaladsl.model.ws.{ Message, UpgradeToWebsocket }
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse, StatusCodes }
 import akka.http.scaladsl.testkit.ScalatestRouteTest
-import akka.stream.FlowMaterializer
+import akka.stream.Materializer
 import akka.stream.scaladsl.Flow
 import akka.util.Timeout
 import org.scalatest.{ FlatSpec, Matchers }
@@ -72,7 +72,7 @@ class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest wit
       override def name = "dummy"
       override def value = "dummy"
 
-      override def handleMessages(handlerFlow: Flow[Message, Message, Any], subprotocol: Option[String])(implicit mat: FlowMaterializer): HttpResponse =
+      override def handleMessages(handlerFlow: Flow[Message, Message, Any], subprotocol: Option[String]): HttpResponse =
         HttpResponse(SwitchingProtocols)
     }
 }

@@ -1,7 +1,7 @@
 package reactive.tweets.outgoing
 
 import akka.http.scaladsl.model.ws.{Message, TextMessage}
-import akka.stream.ActorFlowMaterializer
+import akka.stream.ActorMaterializer
 import akka.stream.testkit.scaladsl.{TestSink, TestSource}
 import reactive.ActorTestUtils
 import reactive.tweets.domain.{Tweet, User}
@@ -9,7 +9,7 @@ import reactive.tweets.domain.{Tweet, User}
 import scala.concurrent.duration.DurationInt
 
 class TweetFlowSpec extends ActorTestUtils with TweetFlow {
-  implicit val materializer = ActorFlowMaterializer()
+  implicit val materializer = ActorMaterializer()
   private val noMessageTimeout = 100.millis
 
   "The flow for tweets" should "ignore incoming messages" in {

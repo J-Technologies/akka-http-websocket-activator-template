@@ -11,7 +11,7 @@ import akka.http.scaladsl.server.PathMatchers.Segment
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.RouteResult.route2HandlerFlow
 import akka.pattern.ask
-import akka.stream.ActorFlowMaterializer
+import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import reactive.tweets.domain.{Tweet, User}
 import reactive.tweets.incoming.TweetActor.{GetLastTen, LastTenResponse}
@@ -26,7 +26,7 @@ object Main extends App with TweetFlow {
   implicit val executor = system.dispatcher
   implicit val timeout = Timeout(1000.millis)
 
-  implicit val materializer = ActorFlowMaterializer()
+  implicit val materializer = ActorMaterializer()
   val serverBinding = Http().bindAndHandle(interface = "0.0.0.0", port = 8080, handler = mainFlow)
   
   def mainFlow(implicit system: ActorSystem, timeout: Timeout, executor: ExecutionContext): Route = {
