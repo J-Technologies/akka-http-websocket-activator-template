@@ -11,7 +11,10 @@ class TweetPublisher extends ActorPublisher[Tweet] {
   }
 
   override def receive = {
-    case tweet: Tweet => onNext(tweet)
+    case tweet: Tweet =>
+      //We do not send tweets if a client is not reading from the stream fast enough.
+      if (isActive && totalDemand > 0)
+        onNext(tweet)
   }
 
 }
