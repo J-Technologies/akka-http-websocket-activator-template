@@ -5,7 +5,7 @@ scalaVersion := "2.11.6"
 
 libraryDependencies ++= {
   val akkaV = "2.3.11"
-  val akkaStreamV = "1.0-RC4"
+  val akkaStreamV = "1.0-SNAPSHOT"
   Seq(
     "com.typesafe.akka" %% "akka-actor" % akkaV,
     "com.typesafe.akka" %% "akka-stream-experimental" % akkaStreamV,
@@ -26,3 +26,4 @@ libraryDependencies ++= {
 fork in run := true
 
 resolvers += "migesok at bintray" at "http://dl.bintray.com/migesok/maven"
+resolvers += Resolver.file("Local repo", file(System.getProperty("user.home") + "/.ivy2/local"))(Resolver.ivyStylePatterns)
