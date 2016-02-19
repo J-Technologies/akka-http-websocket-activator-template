@@ -98,4 +98,8 @@ class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest wit
           wsClient.expectMessage("""{"user":{"name":"tester"},"text":"Hello World! #test"}""")
         }
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 1e5f63e3a36addabb0e9aee3adeae9f9fa1e9727
