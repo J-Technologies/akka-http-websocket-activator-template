@@ -41,11 +41,11 @@ object Main extends App with TweetFlow {
     }
 
     def tweetsOfUserSocket = (pathPrefix("users") & path(Segment)) { userName =>
-      handleWebsocketMessages(tweetFlowOfUser(userName))
+      handleWebSocketMessages(tweetFlowOfUser(userName))
     }
 
     def allTweetsSocket = path("all") {
-      handleWebsocketMessages(tweetFlowOfAll)
+    	handleWebSocketMessages(tweetFlowOfAll)
     }
 
     // TODO Add implementation (Part 2 of tutorial)
