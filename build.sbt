@@ -27,4 +27,3 @@ libraryDependencies ++= {
 fork in run := true
 
 resolvers += "migesok at bintray" at "http://dl.bintray.com/migesok/maven"
-resolvers += Resolver.file("Local repo", file(System.getProperty("user.home") + "/.ivy2/local"))(Resolver.ivyStylePatterns)

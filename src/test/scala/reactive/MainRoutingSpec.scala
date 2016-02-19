@@ -23,7 +23,7 @@ class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest wit
   }
 
   it should "allow to post a tweet for a user" in {
-    Post("/resources/tweets", Tweet(User("test"), "Some tweet")) ~>  Main.mainFlow ~> check {
+    Post("/resources/tweets", Tweet(User("test"), "Some tweet")) ~> Main.mainFlow ~> check {
       status shouldBe NoContent
     }
   }
@@ -36,66 +36,66 @@ class MainRoutingSpec extends FlatSpec with Matchers with ScalatestRouteTest wit
     }
   }
 
-    it should "not handle websocket messages on /" in {
-      val wsClient = WSProbe()
-  
-      WS("http://localhost/", wsClient.flow) ~> Main.mainFlow ~>
-        check {
-          isWebSocketUpgrade shouldEqual false
-        }
-    }
-    
-    it should "send tweets to the all websocket" in {
-      val wsClient = WSProbe()
-  
-      WS("http://localhost/ws/tweets/all", wsClient.flow) ~> Main.mainFlow ~>
-        check {
-          isWebSocketUpgrade shouldEqual true
-  
-          tweetActorManager ! Tweet(User("test"), "Hello World!")
-          wsClient.expectMessage("""{"user":{"name":"test"},"text":"Hello World!"}""")
-        }
-    }
-  
-    it should "send tweets to the stream of a user" in {
-      val wsClient = WSProbe()
-  
-      WS("http://localhost/ws/tweets/users/test", wsClient.flow) ~> Main.mainFlow ~>
-        check {
-          isWebSocketUpgrade shouldEqual true
-  
-          tweetActorManager ! Tweet(User("test"), "Hello World!")
-          wsClient.expectMessage("""{"user":{"name":"test"},"text":"Hello World!"}""")
-        }
-    }
+  it should "not handle websocket messages on /" in {
+    val wsClient = WSProbe()
 
-    it should "not send tweets to the stream of a different user" in {
-      val wsClient = WSProbe()
-  
-      WS("http://localhost/ws/tweets/users/test", wsClient.flow) ~> Main.mainFlow ~>
-        check {
-          isWebSocketUpgrade shouldEqual true
-  
-          tweetActorManager ! Tweet(User("test"), "Hello World!")
-          wsClient.expectMessage("""{"user":{"name":"test"},"text":"Hello World!"}""")
-         
-          tweetActorManager ! Tweet(User("notest"), "Hello World!")
-          wsClient.expectNoMessage()
-        }
-    }
-  
-    /**
-     * TODO Make this test succeed (Part 2 of tutorial)
-     */
-     it should "send tweets to the stream of a hashtag" in {
-      val wsClient = WSProbe()
-  
-      WS("http://localhost/ws/tweets/hashtag/test", wsClient.flow) ~> Main.mainFlow ~>
-        check {
-          isWebSocketUpgrade shouldEqual true
-  
-          tweetActorManager ! Tweet(User("tester"), "Hello World! #test")
-          wsClient.expectMessage("""{"user":{"name":"tester"},"text":"Hello World! #test"}""")
-        }
-    }
+    WS("http://localhost/", wsClient.flow) ~> Main.mainFlow ~>
+      check {
+        isWebSocketUpgrade shouldEqual false
+      }
+  }
+
+  it should "send tweets to the all websocket" in {
+    val wsClient = WSProbe()
+
+    WS("http://localhost/ws/tweets/all", wsClient.flow) ~> Main.mainFlow ~>
+      check {
+        isWebSocketUpgrade shouldEqual true
+
+        tweetActorManager ! Tweet(User("test"), "Hello World!")
+        wsClient.expectMessage("""{"user":{"name":"test"},"text":"Hello World!"}""")
+      }
+  }
+
+  it should "send tweets to the stream of a user" in {
+    val wsClient = WSProbe()
+
+    WS("http://localhost/ws/tweets/users/test", wsClient.flow) ~> Main.mainFlow ~>
+      check {
+        isWebSocketUpgrade shouldEqual true
+
+        tweetActorManager ! Tweet(User("test"), "Hello World!")
+        wsClient.expectMessage("""{"user":{"name":"test"},"text":"Hello World!"}""")
+      }
+  }
+
+  it should "not send tweets to the stream of a different user" in {
+    val wsClient = WSProbe()
+
+    WS("http://localhost/ws/tweets/users/test", wsClient.flow) ~> Main.mainFlow ~>
+      check {
+        isWebSocketUpgrade shouldEqual true
+
+        tweetActorManager ! Tweet(User("test"), "Hello World!")
+        wsClient.expectMessage("""{"user":{"name":"test"},"text":"Hello World!"}""")
+
+        tweetActorManager ! Tweet(User("notest"), "Hello World!")
+        wsClient.expectNoMessage()
+      }
+  }
+
+  /**
+   * TODO Make this test succeed (Part 2 of tutorial)
+   */
+  it should "send tweets to the stream of a hashtag" in {
+    val wsClient = WSProbe()
+
+    WS("http://localhost/ws/tweets/hashtag/test", wsClient.flow) ~> Main.mainFlow ~>
+      check {
+        isWebSocketUpgrade shouldEqual true
+
+        tweetActorManager ! Tweet(User("tester"), "Hello World! #test")
+        wsClient.expectMessage("""{"user":{"name":"tester"},"text":"Hello World! #test"}""")
+      }
+  }
 }
