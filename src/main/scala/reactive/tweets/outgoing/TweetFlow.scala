@@ -11,7 +11,7 @@ trait TweetFlow extends TweetJsonProtocol {
   type TweetFilter = Tweet => Boolean
   
   private def tweetFlow(tweetFilter: TweetFilter): Flow[Message, Message, Unit] =
-    Flow.wrap(Sink.ignore, tweetSource filter tweetFilter map toMessage)(Keep.none)
+    Flow.fromSinkAndSource(Sink.ignore, tweetSource filter tweetFilter map toMessage)
 
   def tweetFlowOfUser(userName: String) = tweetFlow(_.user.name.equalsIgnoreCase(userName))
 
